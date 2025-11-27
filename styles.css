@@ -1,0 +1,145 @@
+/* Custom Animations & Base Styles */
+:root {
+    --gold: #C9A961;
+    --gold-dim: #A68B4F;
+    --gold-light: #E8D9B0;
+    --bg-white: #FFFFFF;
+    --bg-cream: #FAF9F6;
+    --text-dark: #1A1A1A;
+    --text-medium: #4A4A4A;
+    --text-light: #6B6B6B;
+}
+
+/* FIX: Ensure html and body take full height so children can inherit it */
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--bg-white);
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-dark);
+}
+
+h1, h2, h3, .serif {
+    font-family: 'Cinzel', serif;
+}
+
+/* Glassmorphism - Light Theme */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(201, 169, 97, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(201, 169, 97, 0.1);
+}
+
+/* Button Styles */
+.btn-gold {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 16px rgba(201, 169, 97, 0.3);
+}
+.btn-gold:hover {
+    box-shadow: 0 6px 24px rgba(201, 169, 97, 0.4);
+    transform: translateY(-1px);
+}
+.btn-gold:active {
+    transform: scale(0.98);
+}
+
+/* NFC Pulse Animation */
+.nfc-ring {
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+}
+
+@keyframes ripple {
+    0% { width: 0px; height: 0px; opacity: 0.8; border-width: 4px; }
+    100% { width: 300px; height: 300px; opacity: 0; border-width: 0px; }
+}
+
+.ripple-anim {
+    animation: ripple 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+@keyframes glowText {
+    0% { color: var(--text-medium); }
+    50% { color: var(--gold); }
+    100% { color: var(--text-medium); }
+}
+
+.glowing-text {
+    animation: glowText 2s infinite ease-in-out;
+}
+
+/* Screen Transitions */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.screen.active {
+    opacity: 1;
+    pointer-events: all;
+    transform: scale(1);
+}
+
+.screen.hidden-up {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.95);
+    pointer-events: none;
+}
+
+/* Loader Bar */
+.loader-container {
+    width: 200px;
+    height: 2px;
+    background: rgba(201, 169, 97, 0.15);
+    margin-top: 20px;
+    overflow: hidden;
+    position: relative;
+}
+.loader-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-dim));
+    width: 0%;
+    transition: width 2s ease-in-out;
+    box-shadow: 0 0 8px rgba(201, 169, 97, 0.5);
+}
+
+/* Utility */
+.text-gold { color: var(--gold); }
+
+#canvas-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none; /* Let clicks pass through to UI */
+    background: linear-gradient(180deg, #FFFFFF 0%, #FAF9F6 100%);
+}

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcana — Device View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- 3D Background -->
+    <div id="canvas-container"></div>
+
+    <!-- MAIN UI CONTAINER -->
+    <div id="app" class="relative w-full h-full z-10 overflow-hidden">
+
+        <!-- SCREEN 1: CONNECTING (NFC HANDSHAKE) -->
+        <div id="screen-connect" class="screen active">
+            <div class="relative flex flex-col items-center justify-start h-full w-full pt-16 md:pt-20">
+                <div class="nfc-ring ripple-anim"></div>
+                <div class="nfc-ring ripple-anim" style="animation-delay: 0.6s;"></div>
+                
+                <div class="z-10 text-center w-full px-6">
+                    <i data-lucide="waves" class="w-12 h-12 text-gold mb-4 mx-auto opacity-70"></i>
+                    <h2 class="text-xl tracking-[0.3em] uppercase text-medium mb-2 text-xs font-light">Reading Tag</h2>
+                    <h1 id="status-text" class="serif text-3xl text-dark font-bold glowing-text">Establishing Link...</h1>
+                    <div class="loader-container mx-auto mt-6">
+                        <div id="loader-progress" class="loader-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: WELCOME -->
+        <div id="screen-welcome" class="screen hidden-up">
+            <div class="w-full h-full flex flex-col justify-between p-8 pt-16 pb-12">
+                
+                <!-- Top Branding -->
+                <div class="text-center fade-in-element opacity-0" style="transition-delay: 0.2s;">
+                    <p id="item-id-label" class="text-xs tracking-[0.4em] text-gold uppercase mb-3 font-light">Authenticated Item #—</p>
+                    <h1 class="serif text-5xl md:text-6xl font-bold text-dark leading-tight mb-2">
+                        Welcome to your <br>
+                        <span class="text-gold">Arcana Portal</span>
+                    </h1>
+                </div>
+
+                <!-- Middle Indicator (The 3D object is centered here visually) -->
+                <div class="flex-grow flex items-center justify-center">
+                </div>
+
+                <!-- Bottom Actions -->
+                <div class="w-full max-w-md mx-auto space-y-4 fade-in-element opacity-0" style="transition-delay: 0.6s;">
+                    <div class="glass-panel p-6 rounded-2xl text-center transform transition hover:scale-[1.01] border border-gold/20">
+                        <p class="text-medium text-sm mb-2 font-light">You have a new memory attached</p>
+                        <p id="message-from" class="serif text-2xl text-dark">From: —</p>
+                    </div>
+
+                    <button onclick="goToMessage()" class="btn-gold w-full py-4 rounded-xl flex items-center justify-center gap-2">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        <span>Reveal Message</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: THE MESSAGE -->
+        <div id="screen-message" class="screen hidden-up bg-white/95 backdrop-blur-sm">
+            <div class="w-full max-w-2xl h-full overflow-y-auto p-6 pt-12 pb-20">
+                
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-8">
+                    <button onclick="goBackToHome()" class="text-medium hover:text-gold transition">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </button>
+                    <div class="serif text-xl text-gold tracking-widest font-semibold">ARCANA</div>
+                    <div class="w-6"></div>
+                </div>
+
+                <!-- Video Container -->
+                <div class="glass-panel rounded-2xl overflow-hidden mb-8 shadow-lg border border-gold/20 relative group">
+                    <div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-gold opacity-40"></div>
+                    <div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-gold opacity-40"></div>
+
+                    <div class="aspect-video w-full bg-black relative">
+                         <iframe class="w-full h-full object-cover" src="https://www.youtube.com/embed/kBx_rNyFP-o?autoplay=0&controls=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Text Message -->
+                <div class="text-center space-y-4 mb-12">
+                    <h2 class="serif text-4xl text-dark font-bold">Happy Anniversary</h2>
+                    <div class="w-16 h-0.5 bg-gold mx-auto"></div>
+                    <p class="text-lg text-medium leading-relaxed font-light max-w-xl mx-auto mt-6">
+                        "To my moon and stars. This piece reminded me of the night we met in Kyoto. I hope it brings you a little bit of magic every time you wear it. I love you, always."
+                    </p>
+                    <p id="message-sign" class="text-sm text-gold mt-6 uppercase tracking-widest font-light">- —</p>
+                </div>
+
+                <!-- Jewellery Piece Display -->
+                <div class="glass-panel rounded-2xl overflow-hidden mb-8 shadow-lg border border-gold/20 relative group">
+                    <div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-gold opacity-40 z-10"></div>
+                    <div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-gold opacity-40 z-10"></div>
+                    
+                    <div class="p-6 text-center">
+                        <h3 class="serif text-2xl text-dark font-semibold mb-2">Your Jewellery Piece</h3>
+                        <p class="text-xs text-medium mb-4 font-light">Explore your authenticated item</p>
+                    </div>
+                    
+                    <div class="aspect-video w-full bg-gradient-to-b from-white to-cream relative">
+                        <iframe 
+                            id="embedded-iframe"
+                            title="device-3d"
+                            frameborder="0" 
+                            mozallowfullscreen="true" 
+                            webkitallowfullscreen="true" 
+                            xr-spatial-tracking 
+                            execution-while-out-of-viewport 
+                            execution-while-not-rendered 
+                            web-share
+                            allow="camera; autoplay; fullscreen; xr-spatial-tracking; web-share" 
+                            class="w-full h-full"
+                            src="https://ijewel3d.com/drive/files/Yf2WBBl1SyW1xSh6x97MlQ/embedded?slug=Yf2WBBl1SyW1xSh6x97MlQ">
+                        </iframe>
+                    </div>
+                </div>
+
+                <!-- Share Section -->
+                <div class="glass-panel rounded-xl p-6 border border-gold/20">
+                    <div class="flex flex-col items-center gap-4">
+                        <h3 class="serif text-lg text-dark font-semibold">Share this Memory</h3>
+                        <p class="text-xs text-medium text-center">Share a link to this 3D rendering and message.</p>
+                        
+                        <div class="flex gap-3 w-full">
+                            <button onclick="shareContent()" class="flex-1 py-3 border border-gold/30 rounded-lg hover:bg-gold-light/30 transition flex items-center justify-center gap-2 text-sm text-dark font-medium">
+                                <i data-lucide="share-2" class="w-4 h-4"></i> Share
+                            </button>
+                            <button onclick="copyLink()" class="flex-1 py-3 border border-gold/30 rounded-lg hover:bg-gold-light/30 transition flex items-center justify-center gap-2 text-sm text-dark font-medium">
+                                <i data-lucide="link" class="w-4 h-4"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 glass-panel px-6 py-3 rounded-full text-sm text-dark opacity-0 pointer-events-none transition-opacity duration-300 z-50 flex items-center gap-2 border border-gold/20">
+        <i data-lucide="check-circle" class="w-4 h-4 text-gold"></i>
+        <span id="toast-msg">Action Successful</span>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Populate simple text placeholders from URL param
+        (function(){
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('item') || '—';
+            const from = params.get('from') || '—';
+            const itemLabel = document.getElementById('item-id-label');
+            const msgFrom = document.getElementById('message-from');
+            const msgSign = document.getElementById('message-sign');
+            if (itemLabel) itemLabel.innerText = `Authenticated Item #${id}`;
+            if (msgFrom) msgFrom.innerText = `From: ${from}`;
+            if (msgSign) msgSign.innerText = `- ${from}`;
+        })();
+    </script>
+</body>
+</html>

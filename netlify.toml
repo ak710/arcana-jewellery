@@ -1,0 +1,14 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/device/:id"
+  to = "/device.html?item=:id"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/device/:id/*"
+  to = "/device.html?item=:id"
+  status = 200
+  force = true

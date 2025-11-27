@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Arcana — Scan Item</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-white to-cream flex items-center justify-center p-6">
+    <div class="max-w-xl w-full text-center">
+      <h1 class="serif text-4xl mb-4">Arcana Item Portal</h1>
+      <p class="text-medium mb-6">Scan your jewellery item or enter its ID to view the personalised portal.</p>
+
+      <div class="glass-panel p-6 rounded-2xl mb-6">
+        <div id="nfc-area" class="space-y-4">
+          <button id="btn-scan" class="btn-gold w-full py-3 rounded-lg">Scan via Web NFC</button>
+          <div class="text-sm text-medium">OR</div>
+          <input id="manual-id" type="text" placeholder="Enter item ID (e.g. 8842)" class="w-full p-3 rounded-md border border-gray-200" />
+          <button id="btn-go" class="w-full mt-2 py-3 rounded-lg border border-gold/30">Open Item</button>
+        </div>
+      </div>
+
+      <p class="text-xs text-medium">Tip: Web NFC works on supported Android devices with a secure context (https).</p>
+    </div>
+
+    <script>
+      // Attempt Web NFC read and redirect; fallback to manual input
+      const btnScan = document.getElementById('btn-scan');
+      const btnGo = document.getElementById('btn-go');
+      const manual = document.getElementById('manual-id');
+
+      async function redirectToItem(id) {
+        if (!id) return alert('Please provide an item ID.');
+        // Normalize id
+        const safe = encodeURIComponent(String(id).trim());
+        window.location.href = `device.html?item=${safe}`;
+      }
+
+      btnGo.addEventListener('click', () => redirectToItem(manual.value));
+
+      btnScan.addEventListener('click', async () => {
+        if (!('NDEFReader' in window)) {
+          alert('Web NFC is not supported on this device/browser. Please enter the ID manually.');
+          return;
+        }
+
+        try {
+          const ndef = new NDEFReader();
+          await ndef.scan();
+          btnScan.innerText = 'Listening for tag…';
+          ndef.onreading = event => {
+            try {
+              const decoder = new TextDecoder();
+              const record = event.message.records[0];
+              let payload = '';
+              if (record && record.data) payload = decoder.decode(record.data);
+              // Some tags provide text in record.payload instead; try both
+              if (!payload && record && record.recordType === 'text') payload = decoder.decode(record.data);
+              const id = payload || event.serialNumber || prompt('Tag read, but no ID found. Enter ID manually:');
+              redirectToItem(id);
+            } catch (e) {
+              alert('Failed to read tag payload. Enter ID manually.');
+            }
+          };
+        } catch (err) {
+          alert('Failed to start NFC scan: ' + err.message);
+        }
+      });
+    </script>
+  </body>
+</html>

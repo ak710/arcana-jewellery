@@ -1,0 +1,2 @@
+/device/:id    /device.html?item=:id    200
+/device/:id/*  /device.html?item=:id    200
