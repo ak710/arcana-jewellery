@@ -82,6 +82,12 @@
     </div>
   </div>
 
+  <!-- Debug output area -->
+  <div id="debug-area" class="fixed right-4 bottom-4 w-96 max-h-64 overflow-auto p-3 bg-white border rounded shadow text-xs hidden">
+    <div class="font-medium mb-2">Debug</div>
+    <pre id="debug-log" class="whitespace-pre-wrap text-xs"></pre>
+  </div>
+
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
@@ -143,6 +149,17 @@
       }
     })();
 
+    // Debug helper to surface objects in the UI
+    function debugShow(title, obj) {
+      try {
+        const log = document.getElementById('debug-log');
+        if (!log) return;
+        document.getElementById('debug-area').classList.remove('hidden');
+        const heading = title ? (title + ':\n') : '';
+        log.innerText = heading + JSON.stringify(obj, null, 2) + '\n\n' + log.innerText;
+      } catch (e) { console.warn('debugShow failed', e); }
+    }
+
     // logout
     document.getElementById('btn-logout').addEventListener('click', async () => {
       await supabase.auth.signOut();
@@ -185,13 +202,20 @@
         const file = fileInput.files[0];
         const filename = `${id}.glb`;
         formMsg.innerText = 'Uploading model file…';
-        const { data: uploadData, error: uploadErr } = await supabase.storage
+        const uploadResult = await supabase.storage
           .from('models')
           .upload(filename, file, { cacheControl: '3600', upsert: true });
-        if (uploadErr) { formMsg.innerText = 'Upload failed: ' + uploadErr.message; return; }
+        // show upload result for debugging
+        debugShow('Storage upload result', uploadResult);
+        const uploadErr = uploadResult.error || null;
+        if (uploadErr) {
+          formMsg.innerText = 'Upload failed: ' + uploadErr.message;
+          return;
+        }
         // get public url
-        const { data: publicData } = supabase.storage.from('models').getPublicUrl(filename);
-        modelUrl = publicData.publicUrl;
+        const publicData = await supabase.storage.from('models').getPublicUrl(filename);
+        debugShow('Storage public url', publicData);
+        modelUrl = publicData && publicData.data ? publicData.data.publicUrl : publicData.publicUrl || null;
       }
 
       // Prepare payload and show preview
@@ -205,6 +229,8 @@
       if (modelUrl) payload.model_url = modelUrl;
       const previewEl = document.getElementById('payload-preview');
       if (previewEl) previewEl.innerText = 'Payload:\n' + JSON.stringify(payload, null, 2);
+      debugShow('Session before save', session || { user });
+      debugShow('Prepared payload', payload);
 
       formMsg.innerText = 'Checking existing item…';
       // Check if item exists and who owns it
@@ -212,6 +238,7 @@
       if (fetchErr) {
         // non-fatal: log and continue — sometimes maybeSingle returns errors for other reasons
         console.warn('fetch existing error', fetchErr);
+        debugShow('Fetch existing error', fetchErr);
       }
 
       // If an existing row is present and owned by someone else, block the update
@@ -234,6 +261,7 @@
       const { data, error } = result || {};
       if (error) {
         console.error('save error', error);
+        debugShow('Save error', error);
         formMsg.innerText = 'Save failed: ' + (error.message || JSON.stringify(error));
       } else {
         formMsg.innerText = 'Saved successfully!';
