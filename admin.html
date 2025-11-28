@@ -8,6 +8,9 @@
   <!-- Fill these meta tags with your Supabase project values -->
   <meta name="supabase-url" content="https://gktehkfaiqutjrunfyah.supabase.co">
   <meta name="supabase-anon-key" content="sb_publishable_vDVciGc-1-vg0HXe3MmHAg_V6Ea90hQ">
+    <!-- The URL the magic-link will redirect to after verification. 
+      Set to your Netlify site to avoid localhost redirects. -->
+    <meta name="supabase-redirect" content="https://arcana-jewellery.netlify.app/admin.html">
   <style>
     body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
   </style>
@@ -90,13 +93,16 @@
     const formMsg = document.getElementById('form-msg');
 
     // Handle magic link sign-in
-    document.getElementById('btn-send-link').addEventListener('click', async () => {
-      const email = document.getElementById('admin-email').value.trim();
-      if (!email) { authMsg.innerText = 'Enter a valid email.'; return; }
-      authMsg.innerText = 'Sending magic link…';
-      const { error } = await supabase.auth.signInWithOtp({ email });
-      if (error) authMsg.innerText = 'Error sending link: ' + error.message;
-      else authMsg.innerText = 'Magic link sent — check your email.';
+      document.getElementById('btn-send-link').addEventListener('click', async () => {
+        const email = document.getElementById('admin-email').value.trim();
+        if (!email) { authMsg.innerText = 'Enter a valid email.'; return; }
+        authMsg.innerText = 'Sending magic link…';
+        // Read redirect target from meta tag so we don't redirect to localhost
+        const redirectMeta = document.querySelector('meta[name="supabase-redirect"]');
+        const redirectTo = (redirectMeta && redirectMeta.content) ? redirectMeta.content : (window.location.origin + '/admin.html');
+        const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
+        if (error) authMsg.innerText = 'Error sending link: ' + error.message;
+        else authMsg.innerText = 'Magic link sent — check your email.';
     });
 
     // Monitor auth state
