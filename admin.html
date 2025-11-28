@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Arcana Admin — Add Item</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Fill these meta tags with your Supabase project values -->
+  <meta name="supabase-url" content="https://gktehkfaiqutjrunfyah.supabase.co">
+  <meta name="supabase-anon-key" content="sb_publishable_vDVciGc-1-vg0HXe3MmHAg_V6Ea90hQ">
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-50 flex items-start justify-center p-8">
+  <div class="w-full max-w-2xl">
+    <h1 class="text-2xl font-semibold mb-4">Arcana Admin — Add Item</h1>
+
+    <div id="auth-area" class="mb-6 p-4 bg-white rounded shadow">
+      <h2 class="font-medium mb-2">Sign in (admin)</h2>
+      <p class="text-sm text-gray-600 mb-3">Enter your admin email to receive a magic link for sign-in.</p>
+      <div class="flex gap-2">
+        <input id="admin-email" type="email" placeholder="admin@example.com" class="flex-1 p-2 border rounded" />
+        <button id="btn-send-link" class="px-4 py-2 bg-blue-600 text-white rounded">Send Link</button>
+      </div>
+      <p id="auth-msg" class="text-sm mt-2 text-gray-500"></p>
+    </div>
+
+    <div id="form-area" class="hidden p-6 bg-white rounded shadow">
+      <h2 class="font-medium mb-4">Add / Update Item</h2>
+      <form id="item-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium">Item ID</label>
+          <input id="item-id" class="w-full p-2 border rounded" required />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Sender</label>
+          <input id="sender" class="w-full p-2 border rounded" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Video embed URL</label>
+          <input id="video-url" class="w-full p-2 border rounded" placeholder="https://www.youtube.com/embed/..." />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Message text</label>
+          <textarea id="message-text" rows="4" class="w-full p-2 border rounded"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Model (.glb) file (optional)</label>
+          <input id="model-file" type="file" accept=".glb,.gltf" class="mt-1" />
+        </div>
+
+        <div class="flex gap-2">
+          <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Save Item</button>
+          <button id="btn-logout" type="button" class="px-4 py-2 bg-gray-200 rounded">Sign out</button>
+        </div>
+      </form>
+
+      <p id="form-msg" class="text-sm mt-3 text-gray-600"></p>
+    </div>
+
+    <div class="mt-6 text-xs text-gray-500">
+      <p>Notes:</p>
+      <ul class="list-disc pl-5">
+        <li>You must set the Supabase project URL and anon key in the meta tags above.</li>
+        <li>Uploads are stored in the `models` storage bucket. Ensure this bucket exists.</li>
+        <li>Authenticated users can insert/upsert rows into the `items` table. Configure your RLS policies accordingly for admins.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const SUPABASE_URL = document.querySelector('meta[name="supabase-url"]').content;
+    const SUPABASE_ANON_KEY = document.querySelector('meta[name="supabase-anon-key"]').content;
+    if (!SUPABASE_URL || SUPABASE_URL.includes('YOUR-PROJECT')) {
+      document.getElementById('auth-msg').innerText = 'Please set your Supabase URL in the meta tag at the top of this page.';
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const authArea = document.getElementById('auth-area');
+    const formArea = document.getElementById('form-area');
+    const authMsg = document.getElementById('auth-msg');
+    const formMsg = document.getElementById('form-msg');
+
+    // Handle magic link sign-in
+    document.getElementById('btn-send-link').addEventListener('click', async () => {
+      const email = document.getElementById('admin-email').value.trim();
+      if (!email) { authMsg.innerText = 'Enter a valid email.'; return; }
+      authMsg.innerText = 'Sending magic link…';
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (error) authMsg.innerText = 'Error sending link: ' + error.message;
+      else authMsg.innerText = 'Magic link sent — check your email.';
+    });
+
+    // Monitor auth state
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session && session.user) {
+        authArea.classList.add('hidden');
+        formArea.classList.remove('hidden');
+        authMsg.innerText = '';
+      } else {
+        authArea.classList.remove('hidden');
+        formArea.classList.add('hidden');
+      }
+    });
+
+    // logout
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      formMsg.innerText = 'Signed out.';
+    });
+
+    document.getElementById('item-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formMsg.innerText = '';
+      const id = document.getElementById('item-id').value.trim();
+      const sender = document.getElementById('sender').value.trim();
+      const video = document.getElementById('video-url').value.trim();
+      const message = document.getElementById('message-text').value.trim();
+      const fileInput = document.getElementById('model-file');
+
+      if (!id) { formMsg.innerText = 'Item ID is required.'; return; }
+
+      // Optional file upload
+      let modelUrl = null;
+      if (fileInput.files && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const filename = `${id}.glb`;
+        formMsg.innerText = 'Uploading model file…';
+        const { data: uploadData, error: uploadErr } = await supabase.storage
+          .from('models')
+          .upload(filename, file, { cacheControl: '3600', upsert: true });
+        if (uploadErr) { formMsg.innerText = 'Upload failed: ' + uploadErr.message; return; }
+        // get public url
+        const { data: publicData } = supabase.storage.from('models').getPublicUrl(filename);
+        modelUrl = publicData.publicUrl;
+      }
+
+      // Upsert into items table
+      formMsg.innerText = 'Saving item…';
+      const payload = {
+        id,
+        sender: sender || null,
+        video_url: video || null,
+        message: message || null,
+      };
+      if (modelUrl) payload.model_url = modelUrl;
+
+      const { data, error } = await supabase.from('items').upsert(payload).select();
+      if (error) {
+        formMsg.innerText = 'Save failed: ' + error.message;
+      } else {
+        formMsg.innerText = 'Saved successfully!';
+        // Reset form except id
+        document.getElementById('model-file').value = '';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "8842": {
+    "model": "8842.glb",
+    "video": "https://www.youtube.com/embed/kBx_rNyFP-o",
+    "text": "To my moon and stars. This piece reminded me of the night we met in Kyoto. I hope it brings you a little bit of magic every time you wear it. I love you, always.",
+    "from": "Alexander"
+  },
+  "example": {
+    "model": "model.glb",
+    "video": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "text": "Example message for the example item.",
+    "from": "Arcana"
+  }
+}

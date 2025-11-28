@@ -21,6 +21,13 @@ if (ITEM_ID) {
     CUSTOM_MODEL_URL = 'model.glb';
 }
 
+// Supabase integration toggle. When true, the script will try to fetch
+// item metadata from a Supabase table `items` using the REST API.
+// Configure these values before enabling in production.
+const USE_SUPABASE = true; // set to true to enable Supabase lookups
+const SUPABASE_URL = 'https://gktehkfaiqutjrunfyah.supabase.co' // e.g. 'https://xyzcompany.supabase.co'
+const SUPABASE_ANON_KEY = 'sb_publishable_vDVciGc-1-vg0HXe3MmHAg_V6Ea90hQ' // project anon key (public)
+
 // --- INITIALIZE ICONS ---
 lucide.createIcons();
 
@@ -63,67 +70,80 @@ document.getElementById('canvas-container').appendChild(renderer.domElement);
 // Use sRGB output and filmic tone mapping for more accurate colors
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+// --- CUSTOM MODEL LOADING (OPTIONAL) ---
+// We'll fetch a simple `items.json` manifest if present and use it to
+// override model/video/text/from for the current `ITEM_ID`.
+let ITEM_DATA = null;
 
-// --- LIGHTING ---
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
-
-const pointLight1 = new THREE.PointLight(0xffffff, 2);
-pointLight1.position.set(20, 20, 20);
-scene.add(pointLight1);
-
-const pointLight2 = new THREE.PointLight(0xC9A961, 1.5); // Golden light
-pointLight2.position.set(-20, -10, 10);
-scene.add(pointLight2);
-
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-directionalLight.position.set(0, 10, 10);
-scene.add(directionalLight);
-
-// --- OBJECT LOADING LOGIC ---
-//
-// This variable will hold our main jewellery object (the loaded model).
-let jewel;
-// Separate fallback mesh so we can keep it hidden while the real model loads
-let fallbackJewel = null;
-
-// Fallback Geometry Function (Torus Knot)
-// This runs by default to ensure the site works immediately
-// Create the fallback torus knot. By default it's created hidden so it won't
-// briefly flash on-screen while the actual model is loading. Pass `show=true`
-// to make it visible (used if the model fails to load).
-function createFallbackJewel(show = false) {
-    if (fallbackJewel) {
-        try { scene.remove(fallbackJewel); } catch(e) {}
-        fallbackJewel = null;
-    }
-    console.log("Creating fallback geometry (visible=" + !!show + ")");
-    const geometry = new THREE.TorusKnotGeometry(6, 1.5, 128, 32, 2, 3);
-    const material = new THREE.MeshStandardMaterial({ 
-        color: 0xC9A961,
-        metalness: 0.9,
-        roughness: 0.2,
-        emissive: 0x000000,
-        emissiveIntensity: 0
-    });
-    fallbackJewel = new THREE.Mesh(geometry, material);
-    fallbackJewel.visible = !!show;
-    scene.add(fallbackJewel);
-
-    // Only assign to the active `jewel` reference if we want the fallback
-    // to behave as the interactive object (i.e. when it's visible).
-    if (show) {
-        if (jewel) scene.remove(jewel);
-        jewel = fallbackJewel;
+async function fetchItemsManifest() {
+    try {
+        const resp = await fetch('items.json', {cache: 'no-store'});
+        if (!resp.ok) return null;
+        const manifest = await resp.json();
+        return manifest;
+    } catch (e) {
+        return null;
     }
 }
 
-// Initialize a hidden fallback (so it doesn't flash before the real model loads)
-createFallbackJewel(false);
+async function loadAndInitModel() {
+    // Prefer Supabase manifest when enabled, otherwise fall back to local items.json
+    let manifest = null;
+    if (USE_SUPABASE && ITEM_ID && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        try {
+            // Supabase REST select: /rest/v1/items?id=eq.<ITEM_ID>
+            const url = `${SUPABASE_URL}/rest/v1/items?id=eq.${encodeURIComponent(ITEM_ID)}&select=*`;
+            const resp = await fetch(url, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (resp && resp.ok) {
+                const rows = await resp.json();
+                if (Array.isArray(rows) && rows.length > 0) {
+                    // map row directly to ITEM_DATA fields used elsewhere
+                    ITEM_DATA = rows[0];
+                    if (ITEM_DATA.model_url) CUSTOM_MODEL_URL = ITEM_DATA.model_url;
+                    // populate placeholders
+                    try {
+                        const elFrom = document.getElementById('message-from');
+                        const elSign = document.getElementById('message-sign');
+                        const elItem = document.getElementById('item-id-label');
+                        const vidIframe = document.getElementById('embedded-iframe');
+                        if (elFrom && ITEM_DATA.sender) elFrom.innerText = `From: ${ITEM_DATA.sender}`;
+                        if (elSign && ITEM_DATA.sender) elSign.innerText = `- ${ITEM_DATA.sender}`;
+                        if (elItem) elItem.innerText = `Authenticated Item #${ITEM_ID}`;
+                        if (vidIframe && ITEM_DATA.video_url) vidIframe.src = ITEM_DATA.video_url;
+                    } catch (e) {}
+                }
+            }
+        } catch (e) {
+            console.warn('Supabase manifest fetch failed, falling back to local manifest', e);
+            manifest = await fetchItemsManifest();
+        }
+    } else {
+        manifest = await fetchItemsManifest();
+    }
 
-// --- CUSTOM MODEL LOADING (OPTIONAL) ---
-if (ENABLE_CUSTOM_MODEL) {
+    if (!ITEM_DATA && manifest && ITEM_ID && manifest[ITEM_ID]) {
+        ITEM_DATA = manifest[ITEM_ID];
+        if (ITEM_DATA.model) CUSTOM_MODEL_URL = ITEM_DATA.model;
+        try {
+            const elFrom = document.getElementById('message-from');
+            const elSign = document.getElementById('message-sign');
+            const elItem = document.getElementById('item-id-label');
+            const vidIframe = document.getElementById('embedded-iframe');
+            if (elFrom && ITEM_DATA.from) elFrom.innerText = `From: ${ITEM_DATA.from}`;
+            if (elSign && ITEM_DATA.from) elSign.innerText = `- ${ITEM_DATA.from}`;
+            if (elItem) elItem.innerText = `Authenticated Item #${ITEM_ID}`;
+            if (vidIframe && ITEM_DATA.video) vidIframe.src = ITEM_DATA.video;
+        } catch (e) {}
+    }
+
+    if (!ENABLE_CUSTOM_MODEL) return;
+
     const loader = new THREE.GLTFLoader();
     const modelSource = (CUSTOM_MODEL_URL && CUSTOM_MODEL_URL.length) ? CUSTOM_MODEL_URL : 'model.glb';
 
@@ -243,6 +263,9 @@ if (ENABLE_CUSTOM_MODEL) {
         );
     });
 }
+
+// Start model loading (async) but don't block the rest of script
+loadAndInitModel();
 
 // --- PARTICLES (Magical Dust) ---
 const particlesGeometry = new THREE.BufferGeometry();
