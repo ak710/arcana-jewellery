@@ -31,6 +31,9 @@
 
     <div id="form-area" class="hidden p-6 bg-white rounded shadow">
       <h2 class="font-medium mb-4">Add / Update Item</h2>
+      <div class="mb-4 text-sm text-gray-600">
+        Signed in as: <span id="session-user-id" class="font-mono text-xs"></span>
+      </div>
       <form id="item-form" class="space-y-4">
         <div>
           <label class="block text-sm font-medium">Item ID</label>
@@ -63,7 +66,10 @@
         </div>
       </form>
 
-      <p id="form-msg" class="text-sm mt-3 text-gray-600"></p>
+      <div class="mt-3">
+        <div id="payload-preview" class="text-xs text-gray-500 break-words"></div>
+        <p id="form-msg" class="text-sm mt-2 text-gray-600"></p>
+      </div>
     </div>
 
     <div class="mt-6 text-xs text-gray-500">
@@ -135,13 +141,23 @@
       if (!id) { formMsg.innerText = 'Item ID is required.'; return; }
 
       // Ensure user is authenticated and fetch their id for created_by
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
-      const user = userData && userData.user ? userData.user : null;
-      if (userErr || !user) {
+      const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+      const session = sessionData && sessionData.session ? sessionData.session : null;
+      // Fallback to getUser for older SDK behavior
+      let user = null;
+      if (session && session.user) user = session.user;
+      else {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userData && userData.user) user = userData.user;
+      }
+      if (sessionErr || !user) {
         formMsg.innerText = 'You must be signed in to save items. Please sign in with the magic link.';
         return;
       }
       const userId = user.id;
+      // show logged-in user id in UI for debugging
+      const sessionEl = document.getElementById('session-user-id');
+      if (sessionEl) sessionEl.innerText = userId;
 
       // Optional file upload (requires authenticated user)
       let modelUrl = null;
@@ -158,8 +174,7 @@
         modelUrl = publicData.publicUrl;
       }
 
-      // Upsert into items table, include created_by so RLS policies can allow the insert
-      formMsg.innerText = 'Saving item…';
+      // Prepare payload and show preview
       const payload = {
         id,
         sender: sender || null,
@@ -168,14 +183,43 @@
         created_by: userId
       };
       if (modelUrl) payload.model_url = modelUrl;
+      const previewEl = document.getElementById('payload-preview');
+      if (previewEl) previewEl.innerText = 'Payload:\n' + JSON.stringify(payload, null, 2);
 
-      const { data, error } = await supabase.from('items').upsert(payload).select();
+      formMsg.innerText = 'Checking existing item…';
+      // Check if item exists and who owns it
+      const { data: existing, error: fetchErr } = await supabase.from('items').select('created_by').eq('id', id).maybeSingle();
+      if (fetchErr) {
+        // non-fatal: log and continue — sometimes maybeSingle returns errors for other reasons
+        console.warn('fetch existing error', fetchErr);
+      }
+
+      // If an existing row is present and owned by someone else, block the update
+      if (existing && existing.created_by && existing.created_by !== userId) {
+        formMsg.innerText = 'Save failed: this item already exists and is owned by another user (' + existing.created_by + ').';
+        return;
+      }
+
+      formMsg.innerText = existing ? 'Updating existing item…' : 'Creating new item…';
+
+      let result;
+      if (existing) {
+        // Owner matches or created_by is null — perform an update
+        result = await supabase.from('items').update(payload).eq('id', id).select();
+      } else {
+        // Insert new row (preferred for first-time insert to satisfy WITH CHECK)
+        result = await supabase.from('items').insert(payload).select();
+      }
+
+      const { data, error } = result || {};
       if (error) {
-        formMsg.innerText = 'Save failed: ' + error.message;
+        console.error('save error', error);
+        formMsg.innerText = 'Save failed: ' + (error.message || JSON.stringify(error));
       } else {
         formMsg.innerText = 'Saved successfully!';
         // Reset file input
         document.getElementById('model-file').value = '';
+        if (previewEl) previewEl.innerText = '';
       }
     });
   </script>
