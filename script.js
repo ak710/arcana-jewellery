@@ -36,6 +36,11 @@ const scene = new THREE.Scene();
 // Add subtle fog for depth (light theme)
 scene.fog = new THREE.FogExp2(0xFFFFFF, 0.01);
 
+// Shared references for the loaded jewel and fallback object.
+// Declare here so the animation loop can reference them safely before load.
+let jewel = null;
+let fallbackJewel = null;
+
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 // --- VIEW CONFIG ---
