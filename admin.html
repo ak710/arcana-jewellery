@@ -111,8 +111,11 @@
         else authMsg.innerText = 'Magic link sent — check your email.';
     });
 
-    // Monitor auth state
+    // Monitor auth state and populate the signed-in user display
     supabase.auth.onAuthStateChange((event, session) => {
+      const userId = session && session.user ? session.user.id : '';
+      const sessionEl = document.getElementById('session-user-id');
+      if (sessionEl) sessionEl.innerText = userId;
       if (session && session.user) {
         authArea.classList.add('hidden');
         formArea.classList.remove('hidden');
@@ -122,6 +125,23 @@
         formArea.classList.add('hidden');
       }
     });
+
+    // Also populate UI on initial load in case a session already exists
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session && session.user ? session.user.id : '';
+        const sessionEl = document.getElementById('session-user-id');
+        if (sessionEl) sessionEl.innerText = userId;
+        if (session && session.user) {
+          authArea.classList.add('hidden');
+          formArea.classList.remove('hidden');
+          authMsg.innerText = '';
+        }
+      } catch (e) {
+        console.warn('getSession failed', e);
+      }
+    })();
 
     // logout
     document.getElementById('btn-logout').addEventListener('click', async () => {
