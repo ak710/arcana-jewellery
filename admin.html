@@ -56,8 +56,12 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium">Model (.glb) file (optional)</label>
-          <input id="model-file" type="file" accept=".glb,.gltf" class="mt-1" />
+          <label class="block text-sm font-medium">Model (choose existing)</label>
+          <div class="flex gap-2 items-center">
+            <input id="model-search" placeholder="Search models..." class="flex-1 p-2 border rounded" />
+            <button id="btn-refresh-models" type="button" class="px-3 py-2 bg-gray-100 rounded">Refresh</button>
+          </div>
+          <select id="model-select" size="6" class="w-full mt-2 p-2 border rounded text-sm"></select>
         </div>
 
         <div class="flex gap-2">
@@ -160,6 +164,56 @@
       } catch (e) { console.warn('debugShow failed', e); }
     }
 
+    // Load list of models from the `models` storage bucket and populate the select.
+    async function loadModels() {
+      try {
+        const listRes = await supabase.storage.from('models').list('', { limit: 1000 });
+        debugShow('List models', listRes);
+        const items = listRes.data || [];
+        // cache for filtering
+        window._modelsList = items;
+        const select = document.getElementById('model-select');
+        const search = (document.getElementById('model-search')?.value || '').trim().toLowerCase();
+        if (!select) return;
+        select.innerHTML = '';
+        for (const it of items) {
+          if (search && !it.name.toLowerCase().includes(search)) continue;
+          // get public url for each object
+          const urlRes = await supabase.storage.from('models').getPublicUrl(it.name);
+          const publicUrl = (urlRes && urlRes.data && (urlRes.data.publicUrl || urlRes.data.public_url)) || urlRes.publicUrl || null;
+          const opt = document.createElement('option');
+          opt.value = publicUrl || it.name;
+          opt.textContent = it.name;
+          select.appendChild(opt);
+        }
+      } catch (e) {
+        console.warn('loadModels failed', e);
+        debugShow('loadModels exception', e);
+      }
+    }
+
+    // Wire up search and refresh
+    document.addEventListener('click', (ev) => {
+      if (ev.target && ev.target.id === 'btn-refresh-models') loadModels();
+    });
+    const searchEl = document.getElementById('model-search');
+    if (searchEl) searchEl.addEventListener('input', () => loadModels());
+
+    // Load models when auth state shows signed-in user
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session && session.user) {
+        loadModels();
+      }
+    });
+
+    // also call on initial load in case the session exists already
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) await loadModels();
+      } catch (e) { /* ignore */ }
+    })();
+
     // logout
     document.getElementById('btn-logout').addEventListener('click', async () => {
       await supabase.auth.signOut();
@@ -196,27 +250,10 @@
       const sessionEl = document.getElementById('session-user-id');
       if (sessionEl) sessionEl.innerText = userId;
 
-      // Optional file upload (requires authenticated user)
+      // Use selected existing model from the dropdown (no client uploads here)
       let modelUrl = null;
-      if (fileInput.files && fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        const filename = `${id}.glb`;
-        formMsg.innerText = 'Uploading model file…';
-        const uploadResult = await supabase.storage
-          .from('models')
-          .upload(filename, file, { cacheControl: '3600', upsert: true });
-        // show upload result for debugging
-        debugShow('Storage upload result', uploadResult);
-        const uploadErr = uploadResult.error || null;
-        if (uploadErr) {
-          formMsg.innerText = 'Upload failed: ' + uploadErr.message;
-          return;
-        }
-        // get public url
-        const publicData = await supabase.storage.from('models').getPublicUrl(filename);
-        debugShow('Storage public url', publicData);
-        modelUrl = publicData && publicData.data ? publicData.data.publicUrl : publicData.publicUrl || null;
-      }
+      const modelSelect = document.getElementById('model-select');
+      if (modelSelect && modelSelect.value) modelUrl = modelSelect.value;
 
       // Prepare payload and show preview
       const payload = {
@@ -265,8 +302,9 @@
         formMsg.innerText = 'Save failed: ' + (error.message || JSON.stringify(error));
       } else {
         formMsg.innerText = 'Saved successfully!';
-        // Reset file input
-        document.getElementById('model-file').value = '';
+        // Reset model selection
+        const sel = document.getElementById('model-select');
+        if (sel) sel.selectedIndex = 0;
         if (previewEl) previewEl.innerText = '';
       }
     });
