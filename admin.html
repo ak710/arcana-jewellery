@@ -134,7 +134,16 @@
 
       if (!id) { formMsg.innerText = 'Item ID is required.'; return; }
 
-      // Optional file upload
+      // Ensure user is authenticated and fetch their id for created_by
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      const user = userData && userData.user ? userData.user : null;
+      if (userErr || !user) {
+        formMsg.innerText = 'You must be signed in to save items. Please sign in with the magic link.';
+        return;
+      }
+      const userId = user.id;
+
+      // Optional file upload (requires authenticated user)
       let modelUrl = null;
       if (fileInput.files && fileInput.files.length > 0) {
         const file = fileInput.files[0];
@@ -149,13 +158,14 @@
         modelUrl = publicData.publicUrl;
       }
 
-      // Upsert into items table
+      // Upsert into items table, include created_by so RLS policies can allow the insert
       formMsg.innerText = 'Saving item…';
       const payload = {
         id,
         sender: sender || null,
         video_url: video || null,
         message: message || null,
+        created_by: userId
       };
       if (modelUrl) payload.model_url = modelUrl;
 
@@ -164,7 +174,7 @@
         formMsg.innerText = 'Save failed: ' + error.message;
       } else {
         formMsg.innerText = 'Saved successfully!';
-        // Reset form except id
+        // Reset file input
         document.getElementById('model-file').value = '';
       }
     });
