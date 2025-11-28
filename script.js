@@ -355,46 +355,62 @@ const screens = {
 };
 
 // STARTUP SEQUENCE
-window.addEventListener('DOMContentLoaded', () => {
+function startUpSequence() {
+    console.debug('startup: startUpSequence called, document.readyState=', document.readyState);
     // 1. Animate Progress Bar
     setTimeout(() => {
-        document.getElementById('loader-progress').style.width = "100%";
+        const prog = document.getElementById('loader-progress');
+        if (prog) prog.style.width = "100%";
     }, 100);
 
     // 2. Change Status Text
     setTimeout(() => {
         const statusText = document.getElementById('status-text');
-        statusText.innerText = "Link Established";
-        statusText.style.color = "#C9A961"; // Force gold color
-        
+        if (statusText) {
+            statusText.innerText = "Link Established";
+            statusText.style.color = "#C9A961"; // Force gold color
+        }
         // Vibrate if on mobile
         if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
     }, 2000);
 
     // 3. Transition to Welcome Screen
     setTimeout(() => {
-        screens.connect.classList.add('hidden-up');
-        screens.connect.classList.remove('active');
-
-        screens.welcome.classList.remove('hidden-up');
-        screens.welcome.classList.add('active');
-        
-        // Trigger fade-ins
-        const fadeEls = document.querySelectorAll('.fade-in-element');
-        fadeEls.forEach(el => el.style.opacity = "1");
-
-        // Zoom Jewel in slightly for the main view
-        const targetZ = 35;
-        const zoomInterval = setInterval(() => {
-            if (getCameraDistance() > targetZ) {
-                setCameraDistance(getCameraDistance() - 0.1);
-            } else {
-                clearInterval(zoomInterval);
+        try {
+            if (screens.connect) {
+                screens.connect.classList.add('hidden-up');
+                screens.connect.classList.remove('active');
             }
-        }, 16);
+            if (screens.welcome) {
+                screens.welcome.classList.remove('hidden-up');
+                screens.welcome.classList.add('active');
+            }
 
+            // Trigger fade-ins
+            const fadeEls = document.querySelectorAll('.fade-in-element');
+            fadeEls.forEach(el => el.style.opacity = "1");
+
+            // Zoom Jewel in slightly for the main view
+            const targetZ = 35;
+            const zoomInterval = setInterval(() => {
+                if (getCameraDistance() > targetZ) {
+                    setCameraDistance(getCameraDistance() - 0.1);
+                } else {
+                    clearInterval(zoomInterval);
+                }
+            }, 16);
+        } catch (e) {
+            console.error('startup: transition error', e);
+        }
     }, 3500);
-});
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    // DOM already parsed — start immediately
+    startUpSequence();
+} else {
+    window.addEventListener('DOMContentLoaded', startUpSequence);
+}
 
 // NAVIGATION FUNCTIONS
 function goToMessage() {

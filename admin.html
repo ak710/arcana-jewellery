@@ -263,7 +263,12 @@
         message: message || null,
         created_by: userId
       };
-      if (modelUrl) payload.model_url = modelUrl;
+      if (modelUrl) {
+        // store both names to be compatible with items table schema (model or model_url)
+        payload.model_url = modelUrl;
+        payload.model = modelUrl;
+        debugShow('Selected model value', modelUrl);
+      }
       const previewEl = document.getElementById('payload-preview');
       if (previewEl) previewEl.innerText = 'Payload:\n' + JSON.stringify(payload, null, 2);
       debugShow('Session before save', session || { user });
