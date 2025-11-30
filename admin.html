@@ -286,9 +286,10 @@
         created_by: userId
       };
       if (modelUrl) {
-        // store both names to be compatible with items table schema (model or model_url)
+        // store model URL only. Some schemas don't have a `model` column
+        // and will error if we attempt to write it. Use `model_url` as
+        // the canonical field name.
         payload.model_url = modelUrl;
-        payload.model = modelUrl;
         debugShow('Selected model value', modelUrl);
       }
       const previewEl = document.getElementById('payload-preview');
@@ -326,7 +327,13 @@
       if (error) {
         console.error('save error', error);
         debugShow('Save error', error);
-        formMsg.innerText = 'Save failed: ' + (error.message || JSON.stringify(error));
+        // Helpful guidance for a common schema mismatch (missing 'model' column)
+        if (error.message && error.message.includes("Could not find the 'model' column")) {
+          formMsg.innerText = "Save failed: database schema missing 'model' column. " +
+            "Either add a 'model' column to the 'items' table or modify the schema to include 'model_url' and migrate data accordingly.";
+        } else {
+          formMsg.innerText = 'Save failed: ' + (error.message || JSON.stringify(error));
+        }
       } else {
         formMsg.innerText = 'Saved successfully!';
         // Reset model radio selection
