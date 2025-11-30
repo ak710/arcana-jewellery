@@ -91,6 +91,32 @@ async function fetchItemsManifest() {
     }
 }
 
+async function fetchIframeUrl(modelUrl) {
+    if (!USE_SUPABASE || !modelUrl || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        return null;
+    }
+    try {
+        const url = `${SUPABASE_URL}/rest/v1/model_iframes?model_url=eq.${encodeURIComponent(modelUrl)}&select=iframe_url`;
+        const resp = await fetch(url, {
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (resp && resp.ok) {
+            const rows = await resp.json();
+            if (Array.isArray(rows) && rows.length > 0) {
+                return rows[0].iframe_url;
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to fetch iframe URL', e);
+    }
+    return null;
+}
+
+
 async function loadAndInitModel() {
     // Prefer Supabase manifest when enabled, otherwise fall back to local items.json
     let manifest = null;
@@ -113,6 +139,17 @@ async function loadAndInitModel() {
                     // prefer explicit model_url, but allow different column names
                     if (ITEM_DATA.model_url) CUSTOM_MODEL_URL = ITEM_DATA.model_url;
                     else if (ITEM_DATA.model) CUSTOM_MODEL_URL = ITEM_DATA.model;
+
+                    // NEW: Fetch and set iframe URL
+                    if (CUSTOM_MODEL_URL) {
+                        const iframeUrl = await fetchIframeUrl(CUSTOM_MODEL_URL);
+                        if (iframeUrl) {
+                            const device3dIframe = document.getElementById('device-3d-iframe');
+                            if (device3dIframe) {
+                                device3dIframe.src = iframeUrl;
+                            }
+                        }
+                    }
 
                     // populate placeholders (support multiple possible column names)
                     try {
