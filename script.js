@@ -110,18 +110,42 @@ async function loadAndInitModel() {
                 if (Array.isArray(rows) && rows.length > 0) {
                     // map row directly to ITEM_DATA fields used elsewhere
                     ITEM_DATA = rows[0];
+                    // prefer explicit model_url, but allow different column names
                     if (ITEM_DATA.model_url) CUSTOM_MODEL_URL = ITEM_DATA.model_url;
-                    // populate placeholders
+                    else if (ITEM_DATA.model) CUSTOM_MODEL_URL = ITEM_DATA.model;
+
+                    // populate placeholders (support multiple possible column names)
                     try {
                         const elFrom = document.getElementById('message-from');
                         const elSign = document.getElementById('message-sign');
                         const elItem = document.getElementById('item-id-label');
                         const vidIframe = document.getElementById('embedded-iframe');
-                        if (elFrom && ITEM_DATA.sender) elFrom.innerText = `From: ${ITEM_DATA.sender}`;
-                        if (elSign && ITEM_DATA.sender) elSign.innerText = `- ${ITEM_DATA.sender}`;
+                        const msgBody = document.getElementById('message-body');
+                        const msgTitle = document.getElementById('message-title');
+
+                        const sender = ITEM_DATA.sender || ITEM_DATA.from || ITEM_DATA.created_by || null;
+                        const video = ITEM_DATA.video_url || ITEM_DATA.video || ITEM_DATA.videoUrl || null;
+                        const message = ITEM_DATA.message || ITEM_DATA.text || ITEM_DATA.msg || null;
+                        const title = ITEM_DATA.title || ITEM_DATA.heading || null;
+
+                        if (elFrom && sender) elFrom.innerText = `From: ${sender}`;
+                        if (elSign && sender) elSign.innerText = `- ${sender}`;
                         if (elItem) elItem.innerText = `Authenticated Item #${ITEM_ID}`;
-                        if (vidIframe && ITEM_DATA.video_url) vidIframe.src = ITEM_DATA.video_url;
-                    } catch (e) {}
+                        if (vidIframe && video) {
+                            // if it's a YouTube share URL, transform to embed if necessary
+                            let src = video;
+                            // common pattern: convert watch?v= to embed/
+                            try {
+                                const u = new URL(video);
+                                if (u.hostname.includes('youtube') && u.searchParams.get('v')) {
+                                    src = `https://www.youtube.com/embed/${u.searchParams.get('v')}`;
+                                }
+                            } catch (e) {}
+                            vidIframe.src = src;
+                        }
+                        if (msgBody && message) msgBody.innerText = message;
+                        if (msgTitle && title) msgTitle.innerText = title;
+                    } catch (e) { console.warn('populate placeholders failed', e); }
                 }
             }
         } catch (e) {
