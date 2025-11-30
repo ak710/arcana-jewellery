@@ -171,6 +171,40 @@ async function loadAndInitModel() {
         } catch (e) {}
     }
 
+    // If no item data found after both Supabase and manifest lookups, show notfound UI
+    if (!ITEM_DATA && ITEM_ID) {
+        console.warn('No item data found for', ITEM_ID);
+        try {
+            const statusText = document.getElementById('status-text');
+            if (statusText) {
+                statusText.innerText = 'This tag does not exist';
+                statusText.style.color = '#D04648';
+            }
+
+            const nfTitle = document.getElementById('notfound-title');
+            const nfMsg = document.getElementById('notfound-msg');
+            const nfHome = document.getElementById('notfound-home');
+            const nfBack = document.getElementById('notfound-back');
+            if (nfTitle) nfTitle.innerText = 'Tag not recognized';
+            if (nfMsg) nfMsg.innerText = `We don't have a record for tag ID ${ITEM_ID}. You can purchase a tag or try a different one.`;
+            if (nfHome) nfHome.href = 'https://arcana-jewellery.netlify.app/';
+            if (nfBack) nfBack.addEventListener('click', () => {
+                try {
+                    if (screens.notfound) { screens.notfound.classList.add('hidden-up'); screens.notfound.classList.remove('active'); }
+                    if (screens.connect) { screens.connect.classList.remove('hidden-up'); screens.connect.classList.add('active'); }
+                    const status = document.getElementById('status-text');
+                    if (status) { status.innerText = 'Establishing Link...'; status.style.color = ''; }
+                } catch (e) { console.warn('notfound back handler failed', e); }
+            });
+
+            if (screens.connect) { screens.connect.classList.add('hidden-up'); screens.connect.classList.remove('active'); }
+            if (screens.welcome) { screens.welcome.classList.add('hidden-up'); screens.welcome.classList.remove('active'); }
+            if (screens.message) { screens.message.classList.add('hidden-up'); screens.message.classList.remove('active'); }
+            if (screens.notfound) { screens.notfound.classList.remove('hidden-up'); screens.notfound.classList.add('active'); }
+        } catch (e) { console.warn('show notfound failed', e); }
+        return;
+    }
+
     if (!ENABLE_CUSTOM_MODEL) return;
 
     const loader = new THREE.GLTFLoader();
@@ -380,6 +414,7 @@ window.addEventListener('resize', () => {
 const screens = {
     connect: document.getElementById('screen-connect'),
     welcome: document.getElementById('screen-welcome'),
+    notfound: document.getElementById('screen-notfound'),
     message: document.getElementById('screen-message')
 };
 

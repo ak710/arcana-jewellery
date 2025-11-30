@@ -58,10 +58,10 @@
         <div>
           <label class="block text-sm font-medium">Model (choose existing)</label>
           <div class="flex gap-2 items-center">
-            <input id="model-search" placeholder="Search models..." class="flex-1 p-2 border rounded" />
+            <div class="flex-1 text-sm text-gray-600">Select one of the existing models below</div>
             <button id="btn-refresh-models" type="button" class="px-3 py-2 bg-gray-100 rounded">Refresh</button>
           </div>
-          <select id="model-select" size="6" class="w-full mt-2 p-2 border rounded text-sm"></select>
+          <div id="model-list" class="w-full mt-2 p-2 border rounded text-sm max-h-40 overflow-auto"></div>
         </div>
 
         <div class="flex gap-2">
@@ -170,21 +170,45 @@
         const listRes = await supabase.storage.from('models').list('', { limit: 1000 });
         debugShow('List models', listRes);
         const items = listRes.data || [];
-        // cache for filtering
         window._modelsList = items;
-        const select = document.getElementById('model-select');
-        const search = (document.getElementById('model-search')?.value || '').trim().toLowerCase();
-        if (!select) return;
-        select.innerHTML = '';
+        const listEl = document.getElementById('model-list');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+
+        // If there are no items, show a helpful message
+        if (!items.length) {
+          const p = document.createElement('div');
+          p.className = 'text-xs text-gray-500 p-2';
+          p.innerText = 'No models found in the storage bucket.';
+          listEl.appendChild(p);
+          return;
+        }
+
         for (const it of items) {
-          if (search && !it.name.toLowerCase().includes(search)) continue;
-          // get public url for each object
+          // get public url (fallback to constructed public path if missing)
           const urlRes = await supabase.storage.from('models').getPublicUrl(it.name);
-          const publicUrl = (urlRes && urlRes.data && (urlRes.data.publicUrl || urlRes.data.public_url)) || urlRes.publicUrl || null;
-          const opt = document.createElement('option');
-          opt.value = publicUrl || it.name;
-          opt.textContent = it.name;
-          select.appendChild(opt);
+          let publicUrl = (urlRes && urlRes.data && (urlRes.data.publicUrl || urlRes.data.public_url)) || urlRes.publicUrl || null;
+          if (!publicUrl) {
+            const SUPABASE_URL_META = document.querySelector('meta[name="supabase-url"]')?.content || '';
+            publicUrl = `${SUPABASE_URL_META}/storage/v1/object/public/models/${encodeURIComponent(it.name)}`;
+          }
+
+          const idSafe = `model-${it.name.replace(/[^a-z0-9-_\.]/gi, '_')}`;
+          const row = document.createElement('div');
+          row.className = 'flex items-center gap-2 p-1';
+          const radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.name = 'model-radio';
+          radio.id = idSafe;
+          radio.value = publicUrl;
+          radio.className = 'mr-2';
+          const label = document.createElement('label');
+          label.htmlFor = idSafe;
+          label.className = 'text-sm';
+          label.innerText = it.name;
+          row.appendChild(radio);
+          row.appendChild(label);
+          listEl.appendChild(row);
         }
       } catch (e) {
         console.warn('loadModels failed', e);
@@ -192,12 +216,10 @@
       }
     }
 
-    // Wire up search and refresh
+    // Wire up refresh
     document.addEventListener('click', (ev) => {
       if (ev.target && ev.target.id === 'btn-refresh-models') loadModels();
     });
-    const searchEl = document.getElementById('model-search');
-    if (searchEl) searchEl.addEventListener('input', () => loadModels());
 
     // Load models when auth state shows signed-in user
     supabase.auth.onAuthStateChange((event, session) => {
@@ -250,10 +272,10 @@
       const sessionEl = document.getElementById('session-user-id');
       if (sessionEl) sessionEl.innerText = userId;
 
-      // Use selected existing model from the dropdown (no client uploads here)
+      // Use selected existing model from the radio list (no client uploads here)
       let modelUrl = null;
-      const modelSelect = document.getElementById('model-select');
-      if (modelSelect && modelSelect.value) modelUrl = modelSelect.value;
+      const sel = document.querySelector('input[name="model-radio"]:checked');
+      if (sel) modelUrl = sel.value;
 
       // Prepare payload and show preview
       const payload = {
@@ -307,9 +329,9 @@
         formMsg.innerText = 'Save failed: ' + (error.message || JSON.stringify(error));
       } else {
         formMsg.innerText = 'Saved successfully!';
-        // Reset model selection
-        const sel = document.getElementById('model-select');
-        if (sel) sel.selectedIndex = 0;
+        // Reset model radio selection
+        const checked = document.querySelector('input[name="model-radio"]:checked');
+        if (checked) checked.checked = false;
         if (previewEl) previewEl.innerText = '';
       }
     });
