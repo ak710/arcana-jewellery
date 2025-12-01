@@ -50,10 +50,6 @@
           <input id="video-url" class="w-full p-2 border rounded" placeholder="https://www.youtube.com/embed/..." />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium">Jewel 3D URL</label>
-          <input id="jewel3d-url" class="w-full p-2 border rounded" placeholder="https://ijewel3d.com/drive/files/..." />
-        </div>
 
         <div>
           <label class="block text-sm font-medium">Message text</label>
@@ -253,7 +249,6 @@
       const id = document.getElementById('item-id').value.trim();
       const sender = document.getElementById('sender').value.trim();
       const video = document.getElementById('video-url').value.trim();
-      const jewel3d = document.getElementById('jewel3d-url').value.trim();
       const message = document.getElementById('message-text').value.trim();
       const fileInput = document.getElementById('model-file');
 
@@ -288,7 +283,6 @@
         id,
         sender: sender || null,
         video_url: video || null,
-        jewel3d_url: jewel3d || null,
         message: message || null,
         created_by: userId
       };
