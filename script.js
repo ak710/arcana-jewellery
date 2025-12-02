@@ -75,6 +75,7 @@ async function fetchIframeUrl(modelUrl) {
     }
     try {
         const url = `${SUPABASE_URL}/rest/v1/model_iframes?model_url=eq.${encodeURIComponent(modelUrl)}&select=iframe_url`;
+        console.debug('fetchIframeUrl -> requesting', url);
         const resp = await fetch(url, {
             headers: {
                 'apikey': SUPABASE_ANON_KEY,
@@ -82,11 +83,31 @@ async function fetchIframeUrl(modelUrl) {
                 'Content-Type': 'application/json'
             }
         });
-        if (resp && resp.ok) {
+
+        if (!resp) {
+            console.warn('fetchIframeUrl -> no response object');
+            return null;
+        }
+
+        // Log status for debugging (CORS/RLS/401/403 will show here)
+        console.debug('fetchIframeUrl -> status', resp.status, resp.statusText);
+
+        if (resp.ok) {
             const rows = await resp.json();
+            console.debug('fetchIframeUrl -> rows', rows);
             if (Array.isArray(rows) && rows.length > 0) {
-                return rows[0].iframe_url;
+                return rows[0].iframe_url || null;
             }
+            return null;
+        } else {
+            // Attempt to surface response body for debugging (may be JSON or text)
+            try {
+                const text = await resp.text();
+                console.warn('fetchIframeUrl -> non-ok response body:', text);
+            } catch (e) {
+                console.warn('fetchIframeUrl -> non-ok response and body read failed', e);
+            }
+            return null;
         }
     } catch (e) {
         console.warn('Failed to fetch iframe URL', e);
