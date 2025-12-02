@@ -43,7 +43,7 @@
                 
                 <!-- Top Branding -->
                 <div class="text-center fade-in-element opacity-0" style="transition-delay: 0.2s;">
-                    <p id="item-id-label" class="text-xs tracking-[0.4em] text-gold uppercase mb-3 font-light">Authenticated Item #—</p>
+                    <p id="item-id-label" class="text-xs tracking-[0.4em] text-gold uppercase mb-3 font-light"></p>
                     <h1 class="serif text-5xl md:text-6xl font-bold text-dark leading-tight mb-2">
                         Welcome to your <br>
                         <span class="text-gold">Arcana Portal</span>
@@ -58,7 +58,7 @@
                 <div class="w-full max-w-md mx-auto space-y-4 fade-in-element opacity-0" style="transition-delay: 0.6s;">
                     <div class="glass-panel p-6 rounded-2xl text-center transform transition hover:scale-[1.01] border border-gold/20">
                         <p class="text-medium text-sm mb-2 font-light">You have a new memory attached</p>
-                        <p id="message-from" class="serif text-2xl text-dark">From: —</p>
+                        <p id="message-from" class="serif text-2xl text-dark"></p>
                     </div>
 
                     <button onclick="goToMessage()" class="btn-gold w-full py-4 rounded-xl flex items-center justify-center gap-2">
@@ -108,12 +108,10 @@
 
                 <!-- Text Message -->
                 <div class="text-center space-y-4 mb-12">
-                    <h2 id="message-title" class="serif text-4xl text-dark font-bold">Happy Anniversary</h2>
+                    <h2 id="message-title" class="serif text-4xl text-dark font-bold"></h2>
                     <div class="w-16 h-0.5 bg-gold mx-auto"></div>
-                    <p id="message-body" class="text-lg text-medium leading-relaxed font-light max-w-xl mx-auto mt-6">
-                        "To my moon and stars. This piece reminded me of the night we met in Kyoto. I hope it brings you a little bit of magic every time you wear it. I love you, always."
-                    </p>
-                    <p id="message-sign" class="text-sm text-gold mt-6 uppercase tracking-widest font-light">- —</p>
+                    <p id="message-body" class="text-lg text-medium leading-relaxed font-light max-w-xl mx-auto mt-6"></p>
+                    <p id="message-sign" class="text-sm text-gold mt-6 uppercase tracking-widest font-light"></p>
                 </div>
 
                 <!-- Jewellery Piece Display -->
@@ -138,8 +136,7 @@
                             execution-while-not-rendered 
                             web-share
                             allow="camera; autoplay; fullscreen; xr-spatial-tracking; web-share" 
-                            class="w-full h-full"
-                            src="https://ijewel3d.com/drive/files/Yf2WBBl1SyW1xSh6x97MlQ/embedded?slug=Yf2WBBl1SyW1xSh6x97MlQ">
+                            class="w-full h-full">
                         </iframe>
                     </div>
                 </div>
@@ -171,20 +168,11 @@
         <span id="toast-msg">Action Successful</span>
     </div>
 
-    <script src="script.js"></script>
-    <script>
-        // Populate simple text placeholders from URL param
-        (function(){
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('item') || '—';
-            const from = params.get('from') || '—';
-            const itemLabel = document.getElementById('item-id-label');
-            const msgFrom = document.getElementById('message-from');
-            const msgSign = document.getElementById('message-sign');
-            if (itemLabel) itemLabel.innerText = `Authenticated Item #${id}`;
-            if (msgFrom) msgFrom.innerText = `From: ${from}`;
-            if (msgSign) msgSign.innerText = `- ${from}`;
-        })();
-    </script>
+        <!-- Main application script: three.js scene + model loader lives in `script.js` -->
+        <script src="script.js"></script>
+
+        <!-- All visible item content (model, video, message, sender) is populated
+             exclusively from Supabase via `script.js`. No local fallbacks or
+             hardcoded content are present in this file. -->
 </body>
 </html>

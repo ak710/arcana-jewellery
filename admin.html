@@ -50,10 +50,20 @@
           <input id="video-url" class="w-full p-2 border rounded" placeholder="https://www.youtube.com/embed/..." />
         </div>
 
+        <div>
+          <label class="block text-sm font-medium">Message Title</label>
+          <input id="message-title" class="w-full p-2 border rounded" placeholder="e.g. Happy Anniversary" />
+        </div>
+
 
         <div>
           <label class="block text-sm font-medium">Message text</label>
           <textarea id="message-text" rows="4" class="w-full p-2 border rounded"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Signature (optional)</label>
+          <input id="message-signature" class="w-full p-2 border rounded" placeholder="e.g. - Alex" />
         </div>
 
         <div>
@@ -63,6 +73,16 @@
             <button id="btn-refresh-models" type="button" class="px-3 py-2 bg-gray-100 rounded">Refresh</button>
           </div>
           <div id="model-list" class="w-full mt-2 p-2 border rounded text-sm max-h-40 overflow-auto"></div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Manual model URL (optional)</label>
+          <input id="model-url-manual" class="w-full p-2 border rounded" placeholder="https://storage.../my-model.glb" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">3D iframe URL (optional)</label>
+          <input id="iframe-url" class="w-full p-2 border rounded" placeholder="https://your-3d-provider/embed/..." />
         </div>
 
         <div class="flex gap-2">
@@ -87,11 +107,7 @@
     </div>
   </div>
 
-  <!-- Debug output area -->
-  <div id="debug-area" class="fixed right-4 bottom-4 w-96 max-h-64 overflow-auto p-3 bg-white border rounded shadow text-xs hidden">
-    <div class="font-medium mb-2">Debug</div>
-    <pre id="debug-log" class="whitespace-pre-wrap text-xs"></pre>
-  </div>
+  <!-- Debug UI removed for production-readiness. Use browser console for logs. -->
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
@@ -154,23 +170,16 @@
       }
     })();
 
-    // Debug helper to surface objects in the UI
-    function debugShow(title, obj) {
-      try {
-        const log = document.getElementById('debug-log');
-        if (!log) return;
-        document.getElementById('debug-area').classList.remove('hidden');
-        const heading = title ? (title + ':\n') : '';
-        log.innerText = heading + JSON.stringify(obj, null, 2) + '\n\n' + log.innerText;
-      } catch (e) { console.warn('debugShow failed', e); }
-    }
+    // NOTE: Inlined UI debug helper removed to keep admin UI lightweight.
+    // Use `console.debug(...)` in the script instead where helpful.
 
     // Load list of models from the `models` storage bucket and populate the select.
     async function loadModels() {
       try {
         const listRes = await supabase.storage.from('models').list('', { limit: 1000 });
-        debugShow('List models', listRes);
+        console.debug('List models', listRes);
         const items = listRes.data || [];
+        // keep a reference for quick manual inspection if needed
         window._modelsList = items;
         const listEl = document.getElementById('model-list');
         if (!listEl) return;
@@ -211,9 +220,9 @@
           row.appendChild(label);
           listEl.appendChild(row);
         }
-      } catch (e) {
+        } catch (e) {
         console.warn('loadModels failed', e);
-        debugShow('loadModels exception', e);
+        console.debug('loadModels exception', e);
       }
     }
 
@@ -249,8 +258,11 @@
       const id = document.getElementById('item-id').value.trim();
       const sender = document.getElementById('sender').value.trim();
       const video = document.getElementById('video-url').value.trim();
+      const title = document.getElementById('message-title').value.trim();
       const message = document.getElementById('message-text').value.trim();
-      const fileInput = document.getElementById('model-file');
+      const signature = document.getElementById('message-signature').value.trim();
+      const manualModel = document.getElementById('model-url-manual').value.trim();
+      const iframeUrl = document.getElementById('iframe-url').value.trim();
 
       if (!id) { formMsg.innerText = 'Item ID is required.'; return; }
 
@@ -273,17 +285,21 @@
       const sessionEl = document.getElementById('session-user-id');
       if (sessionEl) sessionEl.innerText = userId;
 
-      // Use selected existing model from the radio list (no client uploads here)
+      // Use manual model URL if provided, otherwise use selected radio choice
       let modelUrl = null;
       const sel = document.querySelector('input[name="model-radio"]:checked');
-      if (sel) modelUrl = sel.value;
+      if (manualModel && manualModel.length) modelUrl = manualModel;
+      else if (sel) modelUrl = sel.value;
 
       // Prepare payload and show preview
       const payload = {
         id,
         sender: sender || null,
-        video_url: video || null,
+        title: title || null,
         message: message || null,
+        signature: signature || null,
+        video_url: video || null,
+        iframe_url: iframeUrl || null,
         created_by: userId
       };
       if (modelUrl) {
@@ -291,12 +307,13 @@
         // and will error if we attempt to write it. Use `model_url` as
         // the canonical field name.
         payload.model_url = modelUrl;
-        debugShow('Selected model value', modelUrl);
+        console.debug('Selected model value', modelUrl);
       }
       const previewEl = document.getElementById('payload-preview');
       if (previewEl) previewEl.innerText = 'Payload:\n' + JSON.stringify(payload, null, 2);
-      debugShow('Session before save', session || { user });
-      debugShow('Prepared payload', payload);
+      // Helpful developer logs (view in browser console)
+      console.debug('Session before save', session || { user });
+      console.debug('Prepared payload', payload);
 
       formMsg.innerText = 'Checking existing item…';
       // Check if item exists and who owns it
@@ -304,7 +321,7 @@
       if (fetchErr) {
         // non-fatal: log and continue — sometimes maybeSingle returns errors for other reasons
         console.warn('fetch existing error', fetchErr);
-        debugShow('Fetch existing error', fetchErr);
+        console.debug('Fetch existing error', fetchErr);
       }
 
       // If an existing row is present and owned by someone else, block the update
@@ -327,7 +344,7 @@
       const { data, error } = result || {};
       if (error) {
         console.error('save error', error);
-        debugShow('Save error', error);
+        console.debug('Save error', error);
         // Helpful guidance for a common schema mismatch (missing 'model' column)
         if (error.message && error.message.includes("Could not find the 'model' column")) {
           formMsg.innerText = "Save failed: database schema missing 'model' column. " +

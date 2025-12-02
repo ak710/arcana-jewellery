@@ -1,25 +1,15 @@
-// --- CONFIGURATION ---
-// To replace the fallback torus knot with your jewellery piece set
-// ENABLE_CUSTOM_MODEL = true and either:
-//  - put a file named `model.glb` in the project root, OR
-//  - set CUSTOM_MODEL_URL to a direct URL to a .glb/.gltf file (CORS must allow loading)
-// Examples:
-// const ENABLE_CUSTOM_MODEL = true; // to attempt loading a custom model
-// const CUSTOM_MODEL_URL = 'model.glb'; // local file placed in the same folder
-// const CUSTOM_MODEL_URL = 'https://example.com/path/to/your-model.glb'; // remote URL
-// Enable loading of a custom model if available.
+// script.js — device viewer
+// - Loads a 3D model (GLB) for the scanned item, applies simple PBR materials,
+//   and animates a subtle scene (particles + slow rotation).
+// - Looks up optional item metadata from a local `items.json` manifest or
+//   from a Supabase `items` REST endpoint when `USE_SUPABASE` is enabled.
+// Configuration below controls model loading and Supabase lookups.
 const ENABLE_CUSTOM_MODEL = true;
-// Determine model source from the `item` URL parameter (e.g. device.html?item=8842).
-// If an item id is present we attempt to load `<item>.glb` first, otherwise
-// fall back to `model.glb`.
+// The `ITEM_ID` is still read from the URL (device.html?item=1234).
 const urlParamsForModel = new URLSearchParams(window.location.search);
 const ITEM_ID = urlParamsForModel.get('item');
+// Do not assume any local or hardcoded model file — model URL comes from Supabase.
 let CUSTOM_MODEL_URL = '';
-if (ITEM_ID) {
-    CUSTOM_MODEL_URL = `${ITEM_ID}.glb`;
-} else {
-    CUSTOM_MODEL_URL = 'model.glb';
-}
 
 // Supabase integration toggle. When true, the script will try to fetch
 // item metadata from a Supabase table `items` using the REST API.
@@ -28,7 +18,7 @@ const USE_SUPABASE = true; // set to true to enable Supabase lookups
 const SUPABASE_URL = 'https://gktehkfaiqutjrunfyah.supabase.co' // e.g. 'https://xyzcompany.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_vDVciGc-1-vg0HXe3MmHAg_V6Ea90hQ' // project anon key (public)
 
-// --- INITIALIZE ICONS ---
+// Initialize icons (Lucide) used in the UI
 lucide.createIcons();
 
 // --- THREE.JS BACKGROUND SETUP ---
@@ -36,8 +26,8 @@ const scene = new THREE.Scene();
 // Add subtle fog for depth (light theme)
 scene.fog = new THREE.FogExp2(0xFFFFFF, 0.01);
 
-// Shared references for the loaded jewel and fallback object.
-// Declare here so the animation loop can reference them safely before load.
+// Shared references for the loaded jewel and fallback object. Declared
+// at module scope so the animation loop can reference them safely before load.
 let jewel = null;
 let fallbackJewel = null;
 
@@ -76,20 +66,8 @@ document.getElementById('canvas-container').appendChild(renderer.domElement);
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 // --- CUSTOM MODEL LOADING (OPTIONAL) ---
-// We'll fetch a simple `items.json` manifest if present and use it to
-// override model/video/text/from for the current `ITEM_ID`.
+// ITEM_DATA will be populated from Supabase only.
 let ITEM_DATA = null;
-
-async function fetchItemsManifest() {
-    try {
-        const resp = await fetch('items.json', {cache: 'no-store'});
-        if (!resp.ok) return null;
-        const manifest = await resp.json();
-        return manifest;
-    } catch (e) {
-        return null;
-    }
-}
 
 async function fetchIframeUrl(modelUrl) {
     if (!USE_SUPABASE || !modelUrl || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -118,8 +96,7 @@ async function fetchIframeUrl(modelUrl) {
 
 
 async function loadAndInitModel() {
-    // Prefer Supabase manifest when enabled, otherwise fall back to local items.json
-    let manifest = null;
+    // Only use Supabase as the source of truth for item metadata.
     if (USE_SUPABASE && ITEM_ID && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
             // Supabase REST select: /rest/v1/items?id=eq.<ITEM_ID>
@@ -131,86 +108,82 @@ async function loadAndInitModel() {
                     'Content-Type': 'application/json'
                 }
             });
-            if (resp && resp.ok) {
-                const rows = await resp.json();
-                if (Array.isArray(rows) && rows.length > 0) {
-                    // map row directly to ITEM_DATA fields used elsewhere
-                    ITEM_DATA = rows[0];
-                    // prefer explicit model_url, but allow different column names
-                    if (ITEM_DATA.model_url) CUSTOM_MODEL_URL = ITEM_DATA.model_url;
-                    else if (ITEM_DATA.model) CUSTOM_MODEL_URL = ITEM_DATA.model;
+                    if (resp && resp.ok) {
+                        const rows = await resp.json();
+                        if (Array.isArray(rows) && rows.length > 0) {
+                            // Map the first row into ITEM_DATA and normalize common field names.
+                            ITEM_DATA = rows[0];
+                            if (ITEM_DATA.model_url) CUSTOM_MODEL_URL = ITEM_DATA.model_url;
+                            else if (ITEM_DATA.model) CUSTOM_MODEL_URL = ITEM_DATA.model;
 
-                    // NEW: Fetch and set iframe URL
-                    if (CUSTOM_MODEL_URL) {
-                        const iframeUrl = await fetchIframeUrl(CUSTOM_MODEL_URL);
-                        if (iframeUrl) {
+                        // If the items row contains an explicit iframe_url, use it.
+                        // Otherwise, the code will optionally map model_url -> iframe via
+                        // the `model_iframes` lookup in fetchIframeUrl().
+                        try {
                             const device3dIframe = document.getElementById('device-3d-iframe');
-                            if (device3dIframe) {
-                                device3dIframe.src = iframeUrl;
+                            if (ITEM_DATA.iframe_url && device3dIframe) {
+                                device3dIframe.src = ITEM_DATA.iframe_url;
+                            } else if (CUSTOM_MODEL_URL) {
+                                // Fallback mapping: try to fetch iframe mapping for the model_url
+                                try {
+                                    const iframeUrl = await fetchIframeUrl(CUSTOM_MODEL_URL);
+                                    if (iframeUrl && device3dIframe) device3dIframe.src = iframeUrl;
+                                } catch (e) { console.warn('fetchIframeUrl failed', e); }
+                            }
+                        } catch (e) { console.warn('setting device iframe failed', e); }
+
+                            // Populate visible placeholders (sender, title, video, message)
+                            try {
+                                const elFrom = document.getElementById('message-from');
+                                const elSign = document.getElementById('message-sign');
+                                const elItem = document.getElementById('item-id-label');
+                                const vidIframe = document.getElementById('embedded-iframe');
+                                const msgBody = document.getElementById('message-body');
+                                const msgTitle = document.getElementById('message-title');
+
+                                const sender = ITEM_DATA.sender || ITEM_DATA.from || ITEM_DATA.created_by || null;
+                                // Allow an explicit signature field to override the sender display
+                                const signature = ITEM_DATA.signature || ITEM_DATA.sign || null;
+                                const video = ITEM_DATA.video_url || ITEM_DATA.video || ITEM_DATA.videoUrl || null;
+                                const message = ITEM_DATA.message || ITEM_DATA.text || ITEM_DATA.msg || null;
+                                const title = ITEM_DATA.title || ITEM_DATA.heading || null;
+
+                                if (elFrom && sender) elFrom.innerText = `From: ${sender}`;
+                                if (elSign) {
+                                    if (signature) elSign.innerText = signature;
+                                    else if (sender) elSign.innerText = `- ${sender}`;
+                                }
+                                if (elItem) elItem.innerText = `Authenticated Item #${ITEM_ID}`;
+
+                                if (vidIframe && video) {
+                                    // Transform common YouTube watch URLs into embed URLs when necessary.
+                                    let src = video;
+                                    try {
+                                        const u = new URL(video);
+                                        if (u.hostname.includes('youtube') && u.searchParams.get('v')) {
+                                            src = `https://www.youtube.com/embed/${u.searchParams.get('v')}`;
+                                        }
+                                    } catch (e) { /* ignore invalid URLs */ }
+                                    vidIframe.src = src;
+                                }
+
+                                if (msgBody && message) msgBody.innerText = message;
+                                if (msgTitle && title) msgTitle.innerText = title;
+                            } catch (e) {
+                                console.warn('populate placeholders failed', e);
                             }
                         }
                     }
-
-                    // populate placeholders (support multiple possible column names)
-                    try {
-                        const elFrom = document.getElementById('message-from');
-                        const elSign = document.getElementById('message-sign');
-                        const elItem = document.getElementById('item-id-label');
-                        const vidIframe = document.getElementById('embedded-iframe');
-                        const msgBody = document.getElementById('message-body');
-                        const msgTitle = document.getElementById('message-title');
-
-                        const sender = ITEM_DATA.sender || ITEM_DATA.from || ITEM_DATA.created_by || null;
-                        const video = ITEM_DATA.video_url || ITEM_DATA.video || ITEM_DATA.videoUrl || null;
-                        const message = ITEM_DATA.message || ITEM_DATA.text || ITEM_DATA.msg || null;
-                        const title = ITEM_DATA.title || ITEM_DATA.heading || null;
-
-                        if (elFrom && sender) elFrom.innerText = `From: ${sender}`;
-                        if (elSign && sender) elSign.innerText = `- ${sender}`;
-                        if (elItem) elItem.innerText = `Authenticated Item #${ITEM_ID}`;
-                        if (vidIframe && video) {
-                            // if it's a YouTube share URL, transform to embed if necessary
-                            let src = video;
-                            // common pattern: convert watch?v= to embed/
-                            try {
-                                const u = new URL(video);
-                                if (u.hostname.includes('youtube') && u.searchParams.get('v')) {
-                                    src = `https://www.youtube.com/embed/${u.searchParams.get('v')}`;
-                                }
-                            } catch (e) {}
-                            vidIframe.src = src;
-                        }
-                        if (msgBody && message) msgBody.innerText = message;
-                        if (msgTitle && title) msgTitle.innerText = title;
-                    } catch (e) { console.warn('populate placeholders failed', e); }
-                }
-            }
         } catch (e) {
-            console.warn('Supabase manifest fetch failed, falling back to local manifest', e);
-            manifest = await fetchItemsManifest();
+            console.warn('Supabase fetch failed', e);
         }
     } else {
-        manifest = await fetchItemsManifest();
+        // Supabase disabled or missing ITEM_ID — nothing to load.
     }
 
-    if (!ITEM_DATA && manifest && ITEM_ID && manifest[ITEM_ID]) {
-        ITEM_DATA = manifest[ITEM_ID];
-        if (ITEM_DATA.model) CUSTOM_MODEL_URL = ITEM_DATA.model;
-        try {
-            const elFrom = document.getElementById('message-from');
-            const elSign = document.getElementById('message-sign');
-            const elItem = document.getElementById('item-id-label');
-            const vidIframe = document.getElementById('embedded-iframe');
-            if (elFrom && ITEM_DATA.from) elFrom.innerText = `From: ${ITEM_DATA.from}`;
-            if (elSign && ITEM_DATA.from) elSign.innerText = `- ${ITEM_DATA.from}`;
-            if (elItem) elItem.innerText = `Authenticated Item #${ITEM_ID}`;
-            if (vidIframe && ITEM_DATA.video) vidIframe.src = ITEM_DATA.video;
-        } catch (e) {}
-    }
-
-    // If no item data found after both Supabase and manifest lookups, show notfound UI
+    // If no item data found from Supabase, show notfound UI
     if (!ITEM_DATA && ITEM_ID) {
-        console.warn('No item data found for', ITEM_ID);
+        console.info('No item data found for', ITEM_ID);
         try {
             const statusText = document.getElementById('status-text');
             if (statusText) {
@@ -245,7 +218,12 @@ async function loadAndInitModel() {
     if (!ENABLE_CUSTOM_MODEL) return;
 
     const loader = new THREE.GLTFLoader();
-    const modelSource = (CUSTOM_MODEL_URL && CUSTOM_MODEL_URL.length) ? CUSTOM_MODEL_URL : 'model.glb';
+    const modelSource = CUSTOM_MODEL_URL && CUSTOM_MODEL_URL.length ? CUSTOM_MODEL_URL : null;
+
+    if (!modelSource) {
+        console.warn('No model URL provided for ITEM_ID', ITEM_ID);
+        return; // no model to load — Supabase did not return a model URL
+    }
 
     // Configure DRACOLoader if available (required for Draco-compressed GLBs)
     if (THREE.DRACOLoader) {
@@ -288,7 +266,7 @@ async function loadAndInitModel() {
         loader.load(
             modelSource,
             function (gltf) {
-                console.log('Model loaded successfully from', modelSource);
+                console.info('Model loaded', modelSource);
                 // Remove any existing visible object (including a visible fallback)
                 try { if (jewel) scene.remove(jewel); } catch(e) {}
                 try { if (fallbackJewel) scene.remove(fallbackJewel); } catch(e) {}
@@ -349,16 +327,17 @@ async function loadAndInitModel() {
                 scene.add(jewel);
             },
             function (xhr) {
-                if (xhr && xhr.loaded && xhr.total) {
-                    const pct = (xhr.loaded / xhr.total * 100).toFixed(2);
-                    console.log('Model load progress: ' + pct + '%');
-                }
+                // progress updates are intentionally quiet in production; remove noisy logs
+                // if you need progress feedback during debugging, uncomment below.
+                // if (xhr && xhr.loaded && xhr.total) {
+                //   const pct = (xhr.loaded / xhr.total * 100).toFixed(2);
+                //   console.info('Model load progress: ' + pct + '%');
+                // }
             },
             function (error) {
-                console.warn('Error loading custom model (check console for CORS/Path errors):', error);
-                // If the custom model fails to load, show the fallback so users
-                // still see something interactive instead of the torus flashing briefly.
-                createFallbackJewel(true);
+                console.warn('Error loading custom model (CORS/path):', error);
+                // No local fallback: model failed to load from Supabase-provided URL.
+                // Keep scene empty or show UI-level notfound state as needed.
             }
         );
     });
@@ -367,7 +346,7 @@ async function loadAndInitModel() {
 // Start model loading (async) but don't block the rest of script
 loadAndInitModel();
 
-// --- PARTICLES (Magical Dust) ---
+// --- PARTICLES (magical dust) ---
 const particlesGeometry = new THREE.BufferGeometry();
 const particlesCount = 300;
 const posArray = new Float32Array(particlesCount * 3);
@@ -418,23 +397,20 @@ function animate() {
     targetX = mouseX * 0.001;
     targetY = mouseY * 0.001;
 
-    // Only animate if the jewel object has been created/loaded
+    // Apply gentle rotation when the model is present
     if (jewel) {
-        // Smooth rotation
-        jewel.rotation.y += 0.005;
-        jewel.rotation.x += 0.002;
-
-        // Add interaction drift
-        jewel.rotation.y += 0.05 * (targetX - jewel.rotation.y);
-        jewel.rotation.x += 0.05 * (targetY - jewel.rotation.x);
+        jewel.rotation.y += 0.005 + 0.05 * (targetX - jewel.rotation.y);
+        jewel.rotation.x += 0.002 + 0.05 * (targetY - jewel.rotation.x);
     }
 
-    // Animate particles slowly
+    // Subtle particle motion
     particlesMesh.rotation.y -= 0.001;
     particlesMesh.rotation.x -= 0.001;
 
     renderer.render(scene, camera);
 }
+
+// Start the render loop
 animate();
 
 // Handle Resize
