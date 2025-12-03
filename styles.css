@@ -54,6 +54,20 @@ h1, h2, h3, .serif {
     transform: scale(0.98);
 }
 
+/* Outline Gold Button (light default, gold on hover) */
+.btn-outline-gold {
+    background: var(--bg-white);
+    color: var(--text-dark);
+    border: 2px solid var(--gold);
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-outline-gold:hover {
+    background: var(--gold);
+    color: #FFFFFF;
+    border-color: transparent;
+    box-shadow: 0 6px 24px rgba(201, 169, 97, 0.35);
+}
+
 /* NFC Pulse Animation */
 .nfc-ring {
     border: 2px solid var(--gold);
