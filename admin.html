@@ -83,6 +83,38 @@
           <input id="message-signature" class="w-full p-2 border rounded" placeholder="e.g. - Alex" />
         </div>
 
+        <hr class="my-4 border-gray-300" />
+        <h3 class="text-lg font-semibold mb-3">Piece Details</h3>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium">Stone Size (optional)</label>
+            <input id="stone-size" class="w-full p-2 border rounded" placeholder="e.g. 1.5ct, 6mm" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Stone Quality (optional)</label>
+            <input id="stone-quality" class="w-full p-2 border rounded" placeholder="e.g. VS1, F color" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Metal Type (optional)</label>
+            <input id="metal-type" class="w-full p-2 border rounded" placeholder="e.g. Gold, Silver, Platinum" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Metal Purity (optional)</label>
+            <input id="metal-purity" class="w-full p-2 border rounded" placeholder="e.g. 18K, 14K, 925" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Certification URL (optional)</label>
+          <input id="certification-url" class="w-full p-2 border rounded" placeholder="https://igi.org/reports/..." />
+        </div>
+
+        <hr class="my-4 border-gray-300" />
+
         <div>
           <label class="block text-sm font-medium">Model (choose existing)</label>
           <div class="flex gap-2 items-center">
@@ -280,6 +312,13 @@
       const signature = document.getElementById('message-signature').value.trim();
       const manualModel = document.getElementById('model-url-manual').value.trim();
       const iframeUrl = document.getElementById('iframe-url').value.trim();
+      
+      // Piece details fields
+      const stoneSize = document.getElementById('stone-size').value.trim();
+      const stoneQuality = document.getElementById('stone-quality').value.trim();
+      const metalType = document.getElementById('metal-type').value.trim();
+      const metalPurity = document.getElementById('metal-purity').value.trim();
+      const certificationUrl = document.getElementById('certification-url').value.trim();
 
       if (!id) { formMsg.innerText = 'Item ID is required.'; return; }
 
@@ -317,6 +356,11 @@
         signature: signature || null,
         video_url: video || null,
         iframe_url: iframeUrl || null,
+        stone_size: stoneSize || null,
+        stone_quality: stoneQuality || null,
+        metal_type: metalType || null,
+        metal_purity: metalPurity || null,
+        certification_url: certificationUrl || null,
         created_by: userId
       };
       if (modelUrl) {

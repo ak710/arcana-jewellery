@@ -190,6 +190,48 @@ async function loadAndInitModel() {
 
                                 if (msgBody && message) msgBody.innerText = message;
                                 if (msgTitle && title) msgTitle.innerText = title;
+
+                                // Populate details screen elements
+                                const detailsItemLabel = document.getElementById('details-item-label');
+                                const stoneSize = document.getElementById('stone-size');
+                                const stoneQuality = document.getElementById('stone-quality');
+                                const metalType = document.getElementById('metal-type');
+                                const metalPurity = document.getElementById('metal-purity');
+                                const certProvider = document.getElementById('cert-provider');
+                                const certLink = document.getElementById('cert-link');
+
+                                if (detailsItemLabel) detailsItemLabel.innerText = `Authenticated Item #${ITEM_ID}`;
+
+                                const stoneSizeVal = ITEM_DATA.stone_size || ITEM_DATA.stoneSize || null;
+                                const stoneQualityVal = ITEM_DATA.stone_quality || ITEM_DATA.stoneQuality || null;
+                                const metalTypeVal = ITEM_DATA.metal_type || ITEM_DATA.metalType || null;
+                                const metalPurityVal = ITEM_DATA.metal_purity || ITEM_DATA.metalPurity || null;
+                                const certificationVal = ITEM_DATA.certification_url || ITEM_DATA.certificationUrl || null;
+
+                                if (stoneSize) stoneSize.innerText = stoneSizeVal || '—';
+                                if (stoneQuality) stoneQuality.innerText = stoneQualityVal || '—';
+                                if (metalType) metalType.innerText = metalTypeVal || '—';
+                                if (metalPurity) metalPurity.innerText = metalPurityVal || '—';
+
+                                // Handle certification link
+                                if (certificationVal && certLink) {
+                                    certLink.href = certificationVal;
+                                    certLink.classList.remove('hidden');
+                                    
+                                    // Try to extract provider from URL
+                                    let provider = 'View Certificate';
+                                    try {
+                                        const certUrl = new URL(certificationVal);
+                                        if (certUrl.hostname.includes('igi')) provider = 'IGI';
+                                        else if (certUrl.hostname.includes('gia')) provider = 'GIA';
+                                        else if (certUrl.hostname.includes('hrd')) provider = 'HRD';
+                                        else if (certUrl.hostname.includes('ags')) provider = 'AGS';
+                                    } catch (e) { /* ignore invalid URLs */ }
+                                    if (certProvider) certProvider.innerText = provider;
+                                } else {
+                                    if (certLink) certLink.classList.add('hidden');
+                                    if (certProvider) certProvider.innerText = 'Not Available';
+                                }
                             } catch (e) {
                                 console.warn('populate placeholders failed', e);
                             }
@@ -529,9 +571,32 @@ function goToMessage() {
     }, 16);
 }
 
+function goToDetails() {
+    screens.welcome.classList.add('hidden-up');
+    screens.welcome.classList.remove('active');
+    
+    const screenDetails = document.getElementById('screen-details');
+    screenDetails.classList.remove('hidden-up');
+    screenDetails.classList.add('active');
+    
+    // Move jewel back similar to message screen
+    const targetZ = 60;
+    const interval = setInterval(() => {
+        if (getCameraDistance() < targetZ) {
+            setCameraDistance(getCameraDistance() + 0.5);
+        } else {
+            clearInterval(interval);
+        }
+    }, 16);
+}
+
 function goBackToHome() {
     screens.message.classList.add('hidden-up');
     screens.message.classList.remove('active');
+    
+    const screenDetails = document.getElementById('screen-details');
+    screenDetails.classList.add('hidden-up');
+    screenDetails.classList.remove('active');
     
     screens.welcome.classList.remove('hidden-up');
     screens.welcome.classList.add('active');
