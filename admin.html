@@ -188,34 +188,81 @@
     });
 
     // Monitor auth state and populate the signed-in user display
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabase.auth.onAuthStateChange(async (event, session) => {
       const userId = session && session.user ? session.user.id : '';
+      const userEmail = session && session.user ? session.user.email : '';
       const sessionEl = document.getElementById('session-user-id');
       if (sessionEl) sessionEl.innerText = userId;
+      
       if (session && session.user) {
-        authArea.classList.add('hidden');
-        formArea.classList.remove('hidden');
-        authMsg.innerText = '';
+        // Check if user is an admin
+        try {
+          const { data: adminCheck, error: adminErr } = await supabase
+            .from('admins')
+            .select('email')
+            .eq('email', userEmail)
+            .maybeSingle();
+          
+          if (adminErr) {
+            console.warn('Admin check failed', adminErr);
+            authMsg.innerText = 'Error verifying admin status.';
+            await supabase.auth.signOut();
+            return;
+          }
+          
+          if (!adminCheck) {
+            // User is not an admin
+            authMsg.innerText = `Access denied. ${userEmail} is not authorized as an admin.`;
+            await supabase.auth.signOut();
+            return;
+          }
+          
+          // User is authorized
+          authArea.classList.add('hidden');
+          formArea.classList.remove('hidden');
+          authMsg.innerText = '';
+          console.debug('Admin verified:', userEmail);
+        } catch (e) {
+          console.warn('Admin verification exception', e);
+          authMsg.innerText = 'Error verifying admin status.';
+          await supabase.auth.signOut();
+        }
       } else {
         authArea.classList.remove('hidden');
         formArea.classList.add('hidden');
       }
     });
 
-    // Also populate UI on initial load in case a session already exists
+    // Also check admin status on initial load in case a session already exists
     (async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session && session.user ? session.user.id : '';
+        const userEmail = session && session.user ? session.user.email : '';
         const sessionEl = document.getElementById('session-user-id');
         if (sessionEl) sessionEl.innerText = userId;
+        
         if (session && session.user) {
-          authArea.classList.add('hidden');
-          formArea.classList.remove('hidden');
-          authMsg.innerText = '';
+          // Check admin status
+          const { data: adminCheck, error: adminErr } = await supabase
+            .from('admins')
+            .select('email')
+            .eq('email', userEmail)
+            .maybeSingle();
+          
+          if (adminCheck) {
+            authArea.classList.add('hidden');
+            formArea.classList.remove('hidden');
+            authMsg.innerText = '';
+          } else {
+            authArea.classList.remove('hidden');
+            formArea.classList.add('hidden');
+            authMsg.innerText = `${userEmail} is not authorized as an admin.`;
+            await supabase.auth.signOut();
+          }
         }
       } catch (e) {
-        console.warn('getSession failed', e);
+        console.warn('Initial session/admin check failed', e);
       }
     })();
 
