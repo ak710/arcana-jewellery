@@ -202,11 +202,38 @@ async function loadAndInitModel() {
 
                                 if (detailsItemLabel) detailsItemLabel.innerText = `Authenticated Item #${ITEM_ID}`;
 
-                                const stoneSizeVal = ITEM_DATA.stone_size || ITEM_DATA.stoneSize || null;
-                                const stoneQualityVal = ITEM_DATA.stone_quality || ITEM_DATA.stoneQuality || null;
-                                const metalTypeVal = ITEM_DATA.metal_type || ITEM_DATA.metalType || null;
-                                const metalPurityVal = ITEM_DATA.metal_purity || ITEM_DATA.metalPurity || null;
-                                const certificationVal = ITEM_DATA.certification_url || ITEM_DATA.certificationUrl || null;
+                                // First check if details are in ITEM_DATA itself
+                                let stoneSizeVal = ITEM_DATA.stone_size || ITEM_DATA.stoneSize || null;
+                                let stoneQualityVal = ITEM_DATA.stone_quality || ITEM_DATA.stoneQuality || null;
+                                let metalTypeVal = ITEM_DATA.metal_type || ITEM_DATA.metalType || null;
+                                let metalPurityVal = ITEM_DATA.metal_purity || ITEM_DATA.metalPurity || null;
+                                let certificationVal = ITEM_DATA.certification_url || ITEM_DATA.certificationUrl || null;
+
+                                // If not found in item and we have a model_url, fetch from model_iframes table
+                                if ((!stoneSizeVal || !stoneQualityVal) && CUSTOM_MODEL_URL) {
+                                    try {
+                                        const modelUrl = `${SUPABASE_URL}/rest/v1/model_iframes?model_url=eq.${encodeURIComponent(CUSTOM_MODEL_URL)}&select=*`;
+                                        const modelResp = await fetch(modelUrl, {
+                                            headers: {
+                                                'apikey': SUPABASE_ANON_KEY,
+                                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                                                'Content-Type': 'application/json'
+                                            }
+                                        });
+                                        if (modelResp && modelResp.ok) {
+                                            const modelRows = await modelResp.json();
+                                            if (Array.isArray(modelRows) && modelRows.length > 0) {
+                                                const modelData = modelRows[0];
+                                                stoneSizeVal = stoneSizeVal || modelData.stone_size || null;
+                                                stoneQualityVal = stoneQualityVal || modelData.stone_quality || null;
+                                                metalTypeVal = metalTypeVal || modelData.metal_type || null;
+                                                metalPurityVal = metalPurityVal || modelData.metal_purity || null;
+                                                certificationVal = certificationVal || modelData.certification_url || null;
+                                                console.debug('Fetched model_iframes details', modelData);
+                                            }
+                                        }
+                                    } catch (e) { console.warn('Fetching model_iframes details failed', e); }
+                                }
 
                                 if (stoneSize) stoneSize.innerText = stoneSizeVal || '—';
                                 if (stoneQuality) stoneQuality.innerText = stoneQualityVal || '—';

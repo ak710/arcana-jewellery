@@ -280,6 +280,44 @@
       if (ev.target && ev.target.id === 'btn-refresh-models') loadModels();
     });
 
+    // Fetch piece details from model_iframes table and auto-fill form
+    async function fetchAndPopulateModelDetails(modelUrl) {
+      if (!modelUrl || !SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/model_iframes?model_url=eq.${encodeURIComponent(modelUrl)}&select=*`;
+        const resp = await fetch(url, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (resp && resp.ok) {
+          const rows = await resp.json();
+          if (Array.isArray(rows) && rows.length > 0) {
+            const modelData = rows[0];
+            // Auto-fill the form fields
+            if (modelData.stone_size) document.getElementById('stone-size').value = modelData.stone_size;
+            if (modelData.stone_quality) document.getElementById('stone-quality').value = modelData.stone_quality;
+            if (modelData.metal_type) document.getElementById('metal-type').value = modelData.metal_type;
+            if (modelData.metal_purity) document.getElementById('metal-purity').value = modelData.metal_purity;
+            if (modelData.certification_url) document.getElementById('certification-url').value = modelData.certification_url;
+            if (modelData.iframe_url) document.getElementById('iframe-url').value = modelData.iframe_url;
+            console.debug('Populated model_iframes details', modelData);
+          }
+        }
+      } catch (e) { console.warn('fetchAndPopulateModelDetails failed', e); }
+    }
+
+    // Listen for model selection and auto-populate details
+    document.addEventListener('change', (ev) => {
+      if (ev.target && ev.target.name === 'model-radio') {
+        fetchAndPopulateModelDetails(ev.target.value);
+      }
+    });
+
+    // Wire up refresh
+
     // Load models when auth state shows signed-in user
     supabase.auth.onAuthStateChange((event, session) => {
       if (session && session.user) {
@@ -312,13 +350,6 @@
       const signature = document.getElementById('message-signature').value.trim();
       const manualModel = document.getElementById('model-url-manual').value.trim();
       const iframeUrl = document.getElementById('iframe-url').value.trim();
-      
-      // Piece details fields
-      const stoneSize = document.getElementById('stone-size').value.trim();
-      const stoneQuality = document.getElementById('stone-quality').value.trim();
-      const metalType = document.getElementById('metal-type').value.trim();
-      const metalPurity = document.getElementById('metal-purity').value.trim();
-      const certificationUrl = document.getElementById('certification-url').value.trim();
 
       if (!id) { formMsg.innerText = 'Item ID is required.'; return; }
 
@@ -356,11 +387,6 @@
         signature: signature || null,
         video_url: video || null,
         iframe_url: iframeUrl || null,
-        stone_size: stoneSize || null,
-        stone_quality: stoneQuality || null,
-        metal_type: metalType || null,
-        metal_purity: metalPurity || null,
-        certification_url: certificationUrl || null,
         created_by: userId
       };
       if (modelUrl) {
