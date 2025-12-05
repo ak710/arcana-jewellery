@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -20,10 +20,29 @@
       }
       .logo { font-family: 'KudryashevDisplay', serif; }
     </style>
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              cream: '#FAF9F6',
+              gold: '#C9A961',
+              'gold-dim': '#A68B4F',
+              'gold-light': '#E8D9B0',
+              'arcana-charcoal': '#0F0F0F',
+              'arcana-ebony': '#1A1A1A'
+            }
+          }
+        }
+      };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
   </head>
-  <body class="min-h-screen bg-gradient-to-b from-white to-cream flex items-center justify-center p-6">
+  <body class="min-h-screen bg-gradient-to-b from-white to-cream dark:bg-gradient-to-b dark:from-[#0F0F0F] dark:to-[#1A1A1A] flex items-center justify-center p-6 text-slate-900 dark:text-slate-100">
     <!-- Theme Toggle Button -->
     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
       <span id="theme-icon">🌙</span>
@@ -45,27 +64,6 @@
 
       <p class="text-xs text-medium">Tip: Web NFC works on supported Android devices with a secure context (https).</p>
     </div>
-
-    <script>
-      // Initialize theme from localStorage or system preference
-      function initTheme() {
-        const saved = localStorage.getItem('theme');
-        const theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', theme);
-        document.getElementById('theme-icon').textContent = theme === 'dark' ? '☀️' : '🌙';
-      }
-
-      // Toggle theme
-      document.getElementById('theme-toggle').addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme') || 'light';
-        const next = current === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
-        document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : '🌙';
-      });
-
-      initTheme();
-    </script>
 
     <script>
       // Attempt Web NFC read and redirect; fallback to manual input

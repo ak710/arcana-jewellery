@@ -11,7 +11,7 @@
 }
 
 /* Dark mode variables */
-:root[data-theme="dark"] {
+:root.dark {
     --bg-white: #0F0F0F;
     --bg-cream: #1A1A1A;
     --text-dark: #F0F0F0;
@@ -20,12 +20,12 @@
 }
 
 /* Force dark mode styling on html/body */
-html[data-theme="dark"],
-body[data-theme="dark"] {
+html.dark,
+html.dark body {
     background-color: #0F0F0F !important;
 }
 
-html[data-theme="dark"] {
+html.dark {
     background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
     color: #F0F0F0 !important;
 }
@@ -60,7 +60,7 @@ h1, h2, h3, .serif {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(201, 169, 97, 0.1);
 }
 
-html[data-theme="dark"] .glass-panel {
+.dark .glass-panel {
     background: rgba(15, 15, 15, 0.85);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 2px 8px 0 rgba(201, 169, 97, 0.15);
 }
@@ -232,41 +232,40 @@ html[data-theme="dark"] .glass-panel {
     background: linear-gradient(180deg, var(--bg-white) 0%, var(--bg-cream) 100%);
 }
 
-html[data-theme="dark"] #canvas-container {
+.dark #canvas-container {
     background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
-}
 }
 
 /* Dark mode overrides for Tailwind utility classes */
-html[data-theme="dark"] .bg-white,
-html[data-theme="dark"] .bg-white\/95 {
+.dark .bg-white,
+.dark .bg-white\/95 {
     background-color: #1A1A1A !important;
 }
 
-:root[data-theme="dark"] .bg-gray-50 {
+.dark .bg-gray-50 {
     background-color: #0F0F0F !important;
 }
 
-:root[data-theme="dark"] .bg-gray-100 {
+.dark .bg-gray-100 {
     background-color: #1A1A1A !important;
 }
 
-:root[data-theme="dark"] .bg-gradient-to-b {
+.dark .bg-gradient-to-b {
     background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
 }
 
-:root[data-theme="dark"] .text-gray-600,
-:root[data-theme="dark"] .text-gray-500 {
+.dark .text-gray-600,
+.dark .text-gray-500 {
     color: #B8B8B8 !important;
 }
 
-:root[data-theme="dark"] .border-gray-200 {
+.dark .border-gray-200 {
     border-color: #333 !important;
 }
 
 /* Override the min-h-screen gradient backgrounds */
-html[data-theme="dark"] body,
-html[data-theme="dark"] .min-h-screen {
+html.dark body,
+.dark .min-h-screen {
     background-color: #0F0F0F !important;
     background-image: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
 }
@@ -282,11 +281,11 @@ select {
     border-color: var(--text-light);
 }
 
-:root[data-theme="dark"] input[type="text"],
-:root[data-theme="dark"] input[type="email"],
-:root[data-theme="dark"] input[type="url"],
-:root[data-theme="dark"] textarea,
-:root[data-theme="dark"] select {
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="url"],
+.dark textarea,
+.dark select {
     background-color: #2A2A2A;
     color: var(--text-dark);
     border-color: #444;
@@ -326,21 +325,21 @@ textarea::placeholder {
 }
 
 /* DARK MODE AGGRESSIVE OVERRIDES */
-html[data-theme="dark"] body {
+html.dark body {
     background-image: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
     background-color: #0F0F0F !important;
 }
 
 /* Override Tailwind's from-white and to-cream gradients */
-html[data-theme="dark"] .from-white {
+.dark .from-white {
     --tw-gradient-from: #0F0F0F !important;
 }
 
-html[data-theme="dark"] .to-cream {
+.dark .to-cream {
     --tw-gradient-to: #1A1A1A !important;
 }
 
 /* Override bg-gradient-to-b in dark mode */
-html[data-theme="dark"] .min-h-screen {
+.dark .min-h-screen {
     background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
 }
