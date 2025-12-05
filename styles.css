@@ -60,7 +60,7 @@ h1, h2, h3, .serif {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(201, 169, 97, 0.1);
 }
 
-:root[data-theme="dark"] .glass-panel {
+html[data-theme="dark"] .glass-panel {
     background: rgba(15, 15, 15, 0.85);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 2px 8px 0 rgba(201, 169, 97, 0.15);
 }
@@ -230,6 +230,11 @@ h1, h2, h3, .serif {
     z-index: 0;
     pointer-events: none; /* Let clicks pass through to UI */
     background: linear-gradient(180deg, var(--bg-white) 0%, var(--bg-cream) 100%);
+}
+
+html[data-theme="dark"] #canvas-container {
+    background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
+}
 }
 
 /* Dark mode overrides for Tailwind utility classes */
