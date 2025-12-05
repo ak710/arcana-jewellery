@@ -31,7 +31,7 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: var(--bg-white);
+    background-color: var(--bg-white) !important;
     font-family: 'Outfit', sans-serif;
     color: var(--text-dark);
 }
@@ -219,6 +219,32 @@ h1, h2, h3, .serif {
     z-index: 0;
     pointer-events: none; /* Let clicks pass through to UI */
     background: linear-gradient(180deg, var(--bg-white) 0%, var(--bg-cream) 100%);
+}
+
+/* Dark mode overrides for Tailwind utility classes */
+:root[data-theme="dark"] .bg-white {
+    background-color: #1A1A1A !important;
+}
+
+:root[data-theme="dark"] .bg-gray-50 {
+    background-color: #0F0F0F !important;
+}
+
+:root[data-theme="dark"] .bg-gray-100 {
+    background-color: #1A1A1A !important;
+}
+
+:root[data-theme="dark"] .text-gray-600,
+:root[data-theme="dark"] .text-gray-500 {
+    color: #B8B8B8 !important;
+}
+
+:root[data-theme="dark"] .border-gray-200 {
+    border-color: #333 !important;
+}
+
+:root[data-theme="dark"] .bg-gradient-to-b {
+    background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
 }
 
 /* Form inputs in both modes */
