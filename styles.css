@@ -10,6 +10,20 @@
     --text-light: #6B6B6B;
 }
 
+/* Dark mode variables */
+:root[data-theme="dark"] {
+    --bg-white: #0F0F0F;
+    --bg-cream: #1A1A1A;
+    --text-dark: #F0F0F0;
+    --text-medium: #B8B8B8;
+    --text-light: #909090;
+}
+
+/* Smooth transition for theme switching */
+html, body, .glass-panel, button, input, a {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
 /* FIX: Ensure html and body take full height so children can inherit it */
 html, body {
     width: 100%;
@@ -26,13 +40,18 @@ h1, h2, h3, .serif {
     font-family: 'Cinzel', serif;
 }
 
-/* Glassmorphism - Light Theme */
+/* Glassmorphism - Works in both light and dark modes */
 .glass-panel {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(201, 169, 97, 0.15);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(201, 169, 97, 0.1);
+}
+
+:root[data-theme="dark"] .glass-panel {
+    background: rgba(15, 15, 15, 0.85);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 2px 8px 0 rgba(201, 169, 97, 0.15);
 }
 
 /* Button Styles */
@@ -199,5 +218,59 @@ h1, h2, h3, .serif {
     height: 100%;
     z-index: 0;
     pointer-events: none; /* Let clicks pass through to UI */
-    background: linear-gradient(180deg, #FFFFFF 0%, #FAF9F6 100%);
+    background: linear-gradient(180deg, var(--bg-white) 0%, var(--bg-cream) 100%);
+}
+
+/* Form inputs in both modes */
+input[type="text"],
+input[type="email"],
+input[type="url"],
+textarea,
+select {
+    background-color: var(--bg-white);
+    color: var(--text-dark);
+    border-color: var(--text-light);
+}
+
+:root[data-theme="dark"] input[type="text"],
+:root[data-theme="dark"] input[type="email"],
+:root[data-theme="dark"] input[type="url"],
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] select {
+    background-color: #2A2A2A;
+    color: var(--text-dark);
+    border-color: #444;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="url"]::placeholder,
+textarea::placeholder {
+    color: var(--text-light);
+}
+
+/* Theme toggle button styling */
+.theme-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 100;
+    background: rgba(201, 169, 97, 0.1);
+    border: 2px solid var(--gold);
+    color: var(--gold);
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+}
+
+.theme-toggle:hover {
+    background: var(--gold);
+    color: var(--bg-white);
+    transform: scale(1.1) rotate(20deg);
 }
