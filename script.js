@@ -470,12 +470,17 @@ document.addEventListener('mousemove', (event) => {
     mouseY = (event.clientY - windowHalfY);
 });
 
-document.addEventListener('touchmove', (event) => {
-    if (event.touches.length > 0) {
-        mouseX = (event.touches[0].clientX - windowHalfX);
-        mouseY = (event.touches[0].clientY - windowHalfY);
-    }
-}, {passive: true});
+// Only rotate model on canvas touch, not on UI elements
+const canvasElement = document.querySelector('#canvas-container');
+if (canvasElement) {
+    canvasElement.style.pointerEvents = 'auto'; // Enable touch on canvas only when needed
+    canvasElement.addEventListener('touchmove', (event) => {
+        if (event.touches.length > 0) {
+            mouseX = (event.touches[0].clientX - windowHalfX);
+            mouseY = (event.touches[0].clientY - windowHalfY);
+        }
+    }, {passive: true});
+}
 
 
 

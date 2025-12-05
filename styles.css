@@ -20,13 +20,7 @@
 }
 
 /* Force dark mode styling on html/body */
-html.dark,
 html.dark body {
-    background-color: #0F0F0F !important;
-}
-
-html.dark {
-    background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
     color: #F0F0F0 !important;
 }
 
@@ -42,7 +36,6 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: var(--bg-white) !important;
     font-family: 'Outfit', sans-serif;
     color: var(--text-dark);
 }
@@ -148,6 +141,8 @@ h1, h2, h3, .serif {
     opacity: 0;
     pointer-events: none;
     z-index: 10;
+    overflow-y: auto; /* Enable scrolling on screens */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .screen.active {
@@ -227,7 +222,7 @@ h1, h2, h3, .serif {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
+    z-index: -1; /* Push canvas behind all UI */
     pointer-events: none; /* Let clicks pass through to UI */
     background: linear-gradient(180deg, var(--bg-white) 0%, var(--bg-cream) 100%);
 }
