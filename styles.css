@@ -152,6 +152,45 @@ h1, h2, h3, .serif {
 /* Utility */
 .text-gold { color: var(--gold); }
 
+/* Details Screen Animations */
+.details-card {
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+}
+
+.details-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, transparent, var(--gold-light), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+    border-radius: 1rem;
+}
+
+.details-card:hover::before {
+    opacity: 0.15;
+}
+
+.details-card .detail-row {
+    transform: translateX(-10px);
+}
+
+.details-card.loaded .detail-row {
+    opacity: 1 !important;
+    transform: translateX(0);
+}
+
+/* Smooth icon animations */
+.details-card:hover i {
+    filter: drop-shadow(0 0 8px rgba(201, 169, 97, 0.5));
+}
+
 #canvas-container {
     position: fixed;
     top: 0;

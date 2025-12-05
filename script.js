@@ -606,6 +606,16 @@ function goToDetails() {
     screenDetails.classList.remove('hidden-up');
     screenDetails.classList.add('active');
     
+    // Trigger staggered fade-in animation for detail cards
+    setTimeout(() => {
+        const detailCards = document.querySelectorAll('.details-card');
+        detailCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('loaded');
+            }, index * 100);
+        });
+    }, 200);
+    
     // Move jewel back similar to message screen
     const targetZ = 60;
     const interval = setInterval(() => {
