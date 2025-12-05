@@ -19,6 +19,17 @@
     --text-light: #909090;
 }
 
+/* Force dark mode styling on html/body */
+html[data-theme="dark"],
+body[data-theme="dark"] {
+    background-color: #0F0F0F !important;
+}
+
+html[data-theme="dark"] {
+    background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
+    color: #F0F0F0 !important;
+}
+
 /* Smooth transition for theme switching */
 html, body, .glass-panel, button, input, a {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
