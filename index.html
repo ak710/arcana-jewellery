@@ -49,20 +49,20 @@
     </button>
 
     <div class="max-w-xl w-full text-center">
-      <div class="logo text-6xl text-dark mb-6">Arcana</div>
-      <h1 class="serif text-4xl mb-4">Arcana Item Portal</h1>
-      <p class="text-medium mb-6">Scan your jewellery item or enter its ID to view the personalised portal.</p>
+      <div class="logo text-6xl mb-6" style="color: var(--text-dark);">Arcana</div>
+      <h1 class="serif text-4xl mb-4" style="color: var(--text-dark);">Arcana Item Portal</h1>
+      <p class="mb-6" style="color: var(--text-medium);">Scan your jewellery item or enter its ID to view the personalised portal.</p>
 
       <div class="glass-panel p-6 rounded-2xl mb-6">
         <div id="nfc-area" class="space-y-4">
           <button id="btn-scan" class="btn-gold w-full py-3 rounded-lg">Scan via Web NFC</button>
-          <div class="text-sm text-medium">OR</div>
-          <input id="manual-id" type="text" placeholder="Enter item ID (e.g. 8842)" class="w-full p-3 rounded-md border border-gray-200" />
-          <button id="btn-go" class="w-full mt-2 py-3 rounded-lg border border-gold/30">Open Item</button>
+          <div class="text-sm" style="color: var(--text-medium);">OR</div>
+          <input id="manual-id" type="text" placeholder="Enter item ID (e.g. 8842)" class="w-full p-3 rounded-md border dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-white" style="background-color: var(--bg-white); color: var(--text-dark); border-color: var(--text-light);" />
+          <button id="btn-go" class="btn-outline-gold w-full mt-2 py-3 rounded-lg">Open Item</button>
         </div>
       </div>
 
-      <p class="text-xs text-medium">Tip: Web NFC works on supported Android devices with a secure context (https).</p>
+      <p class="text-xs" style="color: var(--text-medium);">Tip: Web NFC works on supported Android devices with a secure context (https).</p>
     </div>
 
     <script>
