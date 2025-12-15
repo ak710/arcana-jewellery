@@ -108,6 +108,48 @@
         </div>
 
         <hr class="my-4 border-gray-300" />
+        <h3 class="text-lg font-semibold mb-3">Vault Extras</h3>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium">Voice note URL</label>
+            <input id="voice-url" class="w-full p-2 border rounded" placeholder="https://.../voice.mp3" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Song embed / link</label>
+            <input id="song-embed" class="w-full p-2 border rounded" placeholder="Spotify or YouTube embed/link" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium">Location label</label>
+            <input id="location-label" class="w-full p-2 border rounded" placeholder="e.g. Paris Proposal" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Location URL (optional)</label>
+            <input id="location-url" class="w-full p-2 border rounded" placeholder="https://maps.google.com/?q=..." />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium">Location latitude (optional)</label>
+            <input id="location-lat" class="w-full p-2 border rounded" placeholder="48.8584" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Location longitude (optional)</label>
+            <input id="location-lng" class="w-full p-2 border rounded" placeholder="2.2945" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Created at (optional)</label>
+          <input id="created-at" type="datetime-local" class="w-full p-2 border rounded" />
+          <p class="text-xs text-gray-500 mt-1">Leave blank to let the database default apply.</p>
+        </div>
+
+        <hr class="my-4 border-gray-300" />
         <h3 class="text-lg font-semibold mb-3">Piece Details</h3>
 
         <div class="grid grid-cols-2 gap-4">
@@ -419,6 +461,13 @@
       const title = document.getElementById('message-title').value.trim();
       const message = document.getElementById('message-text').value.trim();
       const signature = document.getElementById('message-signature').value.trim();
+      const voice = document.getElementById('voice-url').value.trim();
+      const song = document.getElementById('song-embed').value.trim();
+      const locationLabel = document.getElementById('location-label').value.trim();
+      const locationUrl = document.getElementById('location-url').value.trim();
+      const locationLatRaw = document.getElementById('location-lat').value.trim();
+      const locationLngRaw = document.getElementById('location-lng').value.trim();
+      const createdAtRaw = document.getElementById('created-at').value.trim();
       const manualModel = document.getElementById('model-url-manual').value.trim();
       const iframeUrl = document.getElementById('iframe-url').value.trim();
 
@@ -449,6 +498,12 @@
       if (manualModel && manualModel.length) modelUrl = manualModel;
       else if (sel) modelUrl = sel.value;
 
+      // Optional numeric/location/date parsing
+      const locationLat = locationLatRaw ? parseFloat(locationLatRaw) : null;
+      const locationLng = locationLngRaw ? parseFloat(locationLngRaw) : null;
+      const createdAt = createdAtRaw ? new Date(createdAtRaw) : null;
+      const createdAtIso = createdAt && !isNaN(createdAt.valueOf()) ? createdAt.toISOString() : null;
+
       // Prepare payload and show preview
       const payload = {
         id,
@@ -456,10 +511,17 @@
         title: title || null,
         message: message || null,
         signature: signature || null,
+        voice_url: voice || null,
+        song_embed: song || null,
+        location_label: locationLabel || null,
+        location_url: locationUrl || null,
+        location_lat: Number.isFinite(locationLat) ? locationLat : null,
+        location_lng: Number.isFinite(locationLng) ? locationLng : null,
         video_url: video || null,
         iframe_url: iframeUrl || null,
         created_by: userId
       };
+      if (createdAtIso) payload.created_at = createdAtIso;
       if (modelUrl) {
         // store model URL only. Some schemas don't have a `model` column
         // and will error if we attempt to write it. Use `model_url` as

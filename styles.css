@@ -340,3 +340,105 @@ html.dark body {
 .dark .min-h-screen {
     background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
 }
+
+/* Vault experience layout */
+.vault-hero {
+    background: linear-gradient(145deg, rgba(201, 169, 97, 0.08), rgba(255, 255, 255, 0.9));
+    border: 1px solid rgba(201, 169, 97, 0.25);
+}
+
+.vault-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+
+@media (min-width: 960px) {
+    .vault-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.vault-card {
+    position: relative;
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.dark .vault-card {
+    background: rgba(15, 15, 15, 0.9);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(201, 169, 97, 0.5);
+    background: rgba(201, 169, 97, 0.12);
+    color: var(--gold);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.pill-soft {
+    background: rgba(201, 169, 97, 0.08);
+    color: var(--text-dark);
+}
+
+.voice-body,
+.location-body,
+.message-body {
+    padding: 0.5rem 0.25rem;
+}
+
+.gradient-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    background: radial-gradient(circle at 20% 20%, rgba(201, 169, 97, 0.25), transparent 45%),
+                radial-gradient(circle at 80% 0%, rgba(15, 15, 15, 0.12), transparent 40%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.3), rgba(201, 169, 97, 0.08));
+    min-height: 220px;
+}
+
+.song-fallback {
+    padding: 1rem;
+    text-align: center;
+}
+
+#location-card {
+    background: linear-gradient(165deg, rgba(201, 169, 97, 0.08), rgba(255, 255, 255, 0.9));
+}
+
+.dark #location-card {
+    background: linear-gradient(165deg, rgba(201, 169, 97, 0.12), rgba(15, 15, 15, 0.85));
+}
+
+.message-body {
+    background: rgba(201, 169, 97, 0.04);
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+.vault-card .btn-gold,
+.vault-card .btn-outline-gold {
+    width: 100%;
+}

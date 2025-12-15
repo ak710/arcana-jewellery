@@ -158,14 +158,32 @@ async function loadAndInitModel() {
                                 const elFrom = document.getElementById('message-from');
                                 const elSign = document.getElementById('message-sign');
                                 const elItem = document.getElementById('item-id-label');
+                                const elDate = document.getElementById('message-date');
+                                const elDateWrap = document.getElementById('message-date-wrap');
                                 const vidIframe = document.getElementById('embedded-iframe');
                                 const msgBody = document.getElementById('message-body');
                                 const msgTitle = document.getElementById('message-title');
+                                const voiceCard = document.getElementById('voice-card');
+                                const voiceAudio = document.getElementById('voice-audio');
+                                const songCard = document.getElementById('song-card');
+                                const songEmbed = document.getElementById('song-embed');
+                                const songFallback = document.getElementById('song-fallback');
+                                const songLink = document.getElementById('song-link');
+                                const locationCard = document.getElementById('location-card');
+                                const locationLabel = document.getElementById('location-label');
+                                const locationLink = document.getElementById('location-link');
 
                                 const sender = ITEM_DATA.sender || ITEM_DATA.from || ITEM_DATA.created_by || null;
+                                const createdAt = ITEM_DATA.created_at || ITEM_DATA.createdAt || null;
                                 // Allow an explicit signature field to override the sender display
                                 const signature = ITEM_DATA.signature || ITEM_DATA.sign || null;
                                 const video = ITEM_DATA.video_url || ITEM_DATA.video || ITEM_DATA.videoUrl || null;
+                                const voice = ITEM_DATA.voice_url || ITEM_DATA.voice || ITEM_DATA.voiceNote || null;
+                                const song = ITEM_DATA.song_embed || ITEM_DATA.song_url || ITEM_DATA.song || ITEM_DATA.playlist || null;
+                                const locationLabelVal = ITEM_DATA.location_label || ITEM_DATA.location || ITEM_DATA.place || null;
+                                const locationLat = ITEM_DATA.location_lat || ITEM_DATA.lat || null;
+                                const locationLng = ITEM_DATA.location_lng || ITEM_DATA.lng || null;
+                                const locationUrl = ITEM_DATA.location_url || null;
                                 const message = ITEM_DATA.message || ITEM_DATA.text || ITEM_DATA.msg || null;
                                 const title = ITEM_DATA.title || ITEM_DATA.heading || null;
 
@@ -175,6 +193,10 @@ async function loadAndInitModel() {
                                     else if (sender) elSign.innerText = `- ${sender}`;
                                 }
                                 if (elItem) elItem.innerText = `Authenticated Item #${ITEM_ID}`;
+                                if (elDate && elDateWrap && createdAt) {
+                                    elDate.innerText = new Date(createdAt).toLocaleDateString();
+                                    elDateWrap.style.display = 'flex';
+                                }
 
                                 if (vidIframe && video) {
                                     // Transform common YouTube watch URLs into embed URLs when necessary.
@@ -190,6 +212,47 @@ async function loadAndInitModel() {
 
                                 if (msgBody && message) msgBody.innerText = message;
                                 if (msgTitle && title) msgTitle.innerText = title;
+
+                                // Voice note
+                                if (voiceAudio && voiceCard) {
+                                    if (voice) {
+                                        voiceAudio.src = voice;
+                                        voiceCard.classList.remove('hidden');
+                                    } else {
+                                        voiceCard.classList.add('hidden');
+                                    }
+                                }
+
+                                // Song integration (prefer embeds, fallback to link)
+                                if (songCard) {
+                                    if (song) {
+                                        const isEmbed = typeof song === 'string' && song.includes('embed');
+                                        if (songEmbed) {
+                                            songEmbed.src = song;
+                                            songEmbed.style.display = isEmbed ? 'block' : 'none';
+                                        }
+                                        if (songFallback && songLink) {
+                                            songFallback.style.display = isEmbed ? 'none' : 'block';
+                                            songLink.href = song;
+                                        }
+                                        songCard.classList.remove('hidden');
+                                    } else {
+                                        songCard.classList.add('hidden');
+                                    }
+                                }
+
+                                // Location pin
+                                if (locationCard && locationLabel && locationLink) {
+                                    const locHref = locationUrl || (locationLat && locationLng ? `https://maps.google.com/?q=${locationLat},${locationLng}` : null);
+                                    const label = locationLabelVal || (locationLat && locationLng ? `${locationLat}, ${locationLng}` : null);
+                                    if (locHref && label) {
+                                        locationLabel.innerText = label;
+                                        locationLink.href = locHref;
+                                        locationCard.classList.remove('hidden');
+                                    } else {
+                                        locationCard.classList.add('hidden');
+                                    }
+                                }
 
                                 // Populate details screen elements
                                 const detailsItemLabel = document.getElementById('details-item-label');
