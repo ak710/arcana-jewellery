@@ -289,12 +289,8 @@ async function loadAndInitModel() {
             if (nfMsg) nfMsg.innerText = `We don't have a record for tag ID ${ITEM_ID}. You can purchase a tag or try a different one.`;
             if (nfHome) nfHome.href = 'https://arcana-jewellery.netlify.app/';
             if (nfBack) nfBack.addEventListener('click', () => {
-                try {
-                    if (screens.notfound) { screens.notfound.classList.add('hidden-up'); screens.notfound.classList.remove('active'); }
-                    if (screens.connect) { screens.connect.classList.remove('hidden-up'); screens.connect.classList.add('active'); }
-                    const status = document.getElementById('status-text');
-                    if (status) { status.innerText = 'Establishing Link...'; status.style.color = ''; }
-                } catch (e) { console.warn('notfound back handler failed', e); }
+                // Redirect back to home page to allow user to scan another tag
+                window.location.href = '/';
             });
 
             if (screens.connect) { screens.connect.classList.add('hidden-up'); screens.connect.classList.remove('active'); }
