@@ -206,10 +206,10 @@
 
         <!-- SCREEN 3: THE MESSAGE -->
         <div id="screen-message" class="screen hidden-up bg-white/95 backdrop-blur-sm">
-            <div class="w-full max-w-5xl h-full overflow-y-auto p-6 pt-12 pb-20">
+            <div class="w-full max-w-3xl h-full overflow-y-auto p-6 pt-12 pb-20">
                 
                 <!-- Header -->
-                <div class="flex justify-between items-center mb-8">
+                <div class="flex justify-between items-center mb-12">
                     <button onclick="goBackToHome()" class="text-medium hover:text-gold transition">
                         <i data-lucide="arrow-left" class="w-6 h-6"></i>
                     </button>
@@ -217,160 +217,111 @@
                     <div class="w-6"></div>
                 </div>
 
-                <!-- Vault Hero -->
-                <div class="glass-panel rounded-2xl p-6 md:p-8 mb-8 border border-gold/20 shadow-xl vault-hero">
-                    <div class="flex flex-wrap items-center gap-3 mb-4">
-                        <span class="pill">Memory Vault</span>
-                        <span class="pill pill-soft" id="item-id-label"></span>
+                <!-- Title & Author -->
+                <div class="text-center mb-12">
+                    <h1 id="message-title" class="serif text-4xl md:text-5xl text-dark font-bold leading-tight mb-4"></h1>
+                    <p id="message-sign" class="text-gold uppercase tracking-[0.3em] text-sm"></p>
+                </div>
+
+                <!-- Video Message -->
+                <div class="mb-12">
+                    <div class="aspect-video w-full bg-black rounded-2xl overflow-hidden shadow-2xl">
+                        <iframe id="embedded-iframe" class="w-full h-full object-cover" title="Video message" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                     </div>
-                    <h1 id="message-title" class="serif text-4xl md:text-5xl text-dark font-bold leading-tight mb-3"></h1>
-                    <p id="message-sign" class="text-gold uppercase tracking-[0.3em] text-xs md:text-sm mb-6"></p>
-                    <div class="flex flex-wrap gap-3 text-sm text-medium">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="user" class="w-4 h-4 text-gold"></i>
-                            <span id="message-from"></span>
-                        </div>
-                        <div class="flex items-center gap-2" id="message-date-wrap" style="display:none;">
-                            <i data-lucide="calendar" class="w-4 h-4 text-gold"></i>
-                            <span id="message-date"></span>
+                </div>
+
+                <!-- Text Message (Stylized) -->
+                <div class="mb-16 text-center">
+                    <div class="inline-block max-w-2xl">
+                        <div class="w-16 h-0.5 bg-gold mx-auto mb-6"></div>
+                        <p id="message-body" class="text-xl md:text-2xl text-dark leading-relaxed font-light italic"></p>
+                        <div class="w-16 h-0.5 bg-gold mx-auto mt-6"></div>
+                    </div>
+                </div>
+
+                <!-- Voice Note -->
+                <div id="voice-card" class="mb-12 hidden">
+                    <div class="text-center mb-4">
+                        <h3 class="serif text-2xl text-dark font-semibold flex items-center justify-center gap-2">
+                            <i data-lucide="mic" class="w-5 h-5 text-gold"></i>
+                            A Voice Note for You
+                        </h3>
+                    </div>
+                    <div class="flex justify-center">
+                        <audio id="voice-audio" controls preload="none" class="voice-player"></audio>
+                    </div>
+                </div>
+
+                <!-- Song -->
+                <div id="song-card" class="mb-12 hidden">
+                    <div class="text-center mb-6">
+                        <h3 class="serif text-2xl md:text-3xl text-dark font-semibold italic">
+                            The one song that reminds me of you
+                        </h3>
+                    </div>
+                    <div class="song-container">
+                        <iframe id="song-embed" class="w-full rounded-2xl shadow-xl" style="height: 152px; border: 0;" allow="autoplay; clipboard-write; encrypted-media" loading="lazy"></iframe>
+                        <div id="song-fallback" class="song-fallback-clean hidden">
+                            <a id="song-link" class="btn-gold py-4 px-8 rounded-xl inline-flex items-center justify-center gap-2 text-lg" target="_blank" rel="noopener noreferrer">
+                                <i data-lucide="music" class="w-5 h-5"></i>
+                                <span>Listen to Our Song</span>
+                            </a>
                         </div>
                     </div>
                 </div>
 
-                <!-- Vault Grid -->
-                <div class="vault-grid">
-                    <!-- Video Message -->
-                    <div class="vault-card glass-panel rounded-2xl overflow-hidden shadow-lg border border-gold/20">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i data-lucide="play" class="w-5 h-5 text-gold"></i>
-                                <span>Video Message</span>
-                            </div>
-                            <span class="pill pill-soft">HD</span>
-                        </div>
-                        <div class="aspect-video w-full bg-black relative">
-                            <iframe id="embedded-iframe" class="w-full h-full object-cover" title="Video message" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        </div>
+                <!-- Location -->
+                <div id="location-card" class="mb-12 hidden">
+                    <div class="text-center mb-6">
+                        <h3 class="serif text-2xl md:text-3xl text-dark font-semibold mb-2">
+                            <span id="location-label"></span>
+                        </h3>
+                        <p class="text-medium text-sm">A place we'll always remember</p>
                     </div>
-
-                    <!-- Voice Note -->
-                    <div id="voice-card" class="vault-card glass-panel rounded-2xl shadow-lg border border-gold/20">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i data-lucide="mic" class="w-5 h-5 text-gold"></i>
-                                <span>Voice Note</span>
-                            </div>
-                            <span class="pill pill-soft">Listen</span>
-                        </div>
-                        <div class="voice-body">
-                            <p class="text-medium text-sm mb-3">A personal voice message saved to this tag.</p>
-                            <audio id="voice-audio" controls preload="none" class="w-full"></audio>
-                        </div>
+                    <div id="location-embed-wrap" class="map-embed-clean hidden mb-4">
+                        <iframe id="location-embed" class="w-full h-full rounded-2xl shadow-xl" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                     </div>
-
-                    <!-- Song Integration -->
-                    <div id="song-card" class="vault-card glass-panel rounded-2xl shadow-lg border border-gold/20">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i data-lucide="music" class="w-5 h-5 text-gold"></i>
-                                <span>Song Dedication</span>
-                            </div>
-                            <span class="pill pill-soft">Playlist</span>
-                        </div>
-                        <div class="song-embed gradient-frame">
-                            <iframe id="song-embed" class="w-full h-full rounded-xl" allow="autoplay; clipboard-write; encrypted-media" loading="lazy"></iframe>
-                            <div id="song-fallback" class="song-fallback">
-                                <p class="text-medium text-sm">Open the dedicated track.</p>
-                                <a id="song-link" class="btn-outline-gold w-full py-2 rounded-lg inline-flex items-center justify-center gap-2 mt-3" target="_blank" rel="noopener noreferrer">
-                                    <i data-lucide="external-link" class="w-4 h-4"></i>
-                                    <span>Open Song</span>
-                                </a>
-                            </div>
-                        </div>
+                    <div class="text-center">
+                        <a id="location-link" class="btn-outline-gold py-3 px-6 rounded-xl inline-flex items-center justify-center gap-2" target="_blank" rel="noopener noreferrer">
+                            <i data-lucide="navigation" class="w-4 h-4"></i>
+                            <span>Open in Maps</span>
+                        </a>
                     </div>
+                </div>
 
-                    <!-- Location Pin -->
-                    <div id="location-card" class="vault-card glass-panel rounded-2xl shadow-lg border border-gold/20">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i data-lucide="map-pin" class="w-5 h-5 text-gold"></i>
-                                <span>Location Pin</span>
-                            </div>
-                            <span class="pill pill-soft">Map</span>
-                        </div>
-                        <div class="location-body space-y-4">
-                            <div>
-                                <p id="location-label" class="text-dark font-semibold"></p>
-                                <p class="text-medium text-sm">Pinned place for this memory.</p>
-                            </div>
-                            <div id="location-embed-wrap" class="map-embed hidden">
-                                <iframe id="location-embed" class="w-full h-full rounded-xl" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                            </div>
-                            <a id="location-link" class="btn-gold w-full py-3 rounded-lg inline-flex items-center justify-center gap-2" target="_blank" rel="noopener noreferrer">
-                                <i data-lucide="navigation" class="w-4 h-4"></i>
-                                <span>Open in Maps</span>
-                            </a>
-                        </div>
+                <!-- Jewellery Piece -->
+                <div class="mb-12">
+                    <div class="text-center mb-6">
+                        <h3 class="serif text-2xl text-dark font-semibold">Your Jewellery Piece</h3>
+                        <p class="text-xs text-medium mt-2">Authenticated Item <span id="item-id-label"></span></p>
                     </div>
-
-                    <!-- Written Note -->
-                    <div class="vault-card glass-panel rounded-2xl shadow-lg border border-gold/20 text-left">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i data-lucide="pen" class="w-5 h-5 text-gold"></i>
-                                <span>Written Note</span>
-                            </div>
-                            <span class="pill pill-soft">Text</span>
-                        </div>
-                        <div class="message-body">
-                            <div class="w-12 h-1 bg-gold mb-4"></div>
-                            <p id="message-body" class="text-lg text-medium leading-relaxed font-light"></p>
-                        </div>
+                    <div class="aspect-video w-full bg-gradient-to-b from-white to-cream rounded-2xl overflow-hidden shadow-xl">
+                        <iframe 
+                            id="device-3d-iframe"
+                            title="device-3d"
+                            frameborder="0" 
+                            mozallowfullscreen="true" 
+                            webkitallowfullscreen="true" 
+                            xr-spatial-tracking 
+                            execution-while-out-of-viewport 
+                            execution-while-not-rendered 
+                            web-share
+                            allow="camera; autoplay; fullscreen; xr-spatial-tracking; web-share" 
+                            class="w-full h-full">
+                        </iframe>
                     </div>
+                </div>
 
-                    <!-- Jewellery Piece Display -->
-                    <div class="vault-card glass-panel rounded-2xl overflow-hidden shadow-lg border border-gold/20 relative">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i data-lucide="gem" class="w-5 h-5 text-gold"></i>
-                                <span>Your Jewellery Piece</span>
-                            </div>
-                            <span class="pill pill-soft">3D</span>
-                        </div>
-                        <div class="aspect-video w-full bg-gradient-to-b from-white to-cream relative">
-                            <iframe 
-                                id="device-3d-iframe"
-                                title="device-3d"
-                                frameborder="0" 
-                                mozallowfullscreen="true" 
-                                webkitallowfullscreen="true" 
-                                xr-spatial-tracking 
-                                execution-while-out-of-viewport 
-                                execution-while-not-rendered 
-                                web-share
-                                allow="camera; autoplay; fullscreen; xr-spatial-tracking; web-share" 
-                                class="w-full h-full">
-                            </iframe>
-                        </div>
-                    </div>
-
-                    <!-- Share Section -->
-                    <div class="vault-card glass-panel rounded-2xl p-6 border border-gold/20">
-                        <div class="flex flex-col gap-3">
-                            <div class="card-title">
-                                <i data-lucide="share-2" class="w-5 h-5 text-gold"></i>
-                                <span>Share this Memory</span>
-                            </div>
-                            <p class="text-xs text-medium">Share a link to this 3D rendering, video, and notes.</p>
-                            <div class="flex gap-3 w-full flex-col sm:flex-row">
-                                <button onclick="shareContent()" class="flex-1 py-3 border border-gold/30 rounded-lg hover:bg-gold-light/30 transition flex items-center justify-center gap-2 text-sm text-dark font-medium">
-                                    <i data-lucide="send" class="w-4 h-4"></i> Share
-                                </button>
-                                <button onclick="copyLink()" class="flex-1 py-3 border border-gold/30 rounded-lg hover:bg-gold-light/30 transition flex items-center justify-center gap-2 text-sm text-dark font-medium">
-                                    <i data-lucide="link" class="w-4 h-4"></i> Copy
-                                </button>
-                            </div>
-                        </div>
+                <!-- Share Section -->
+                <div class="text-center pt-8 border-t border-gold/20">
+                    <h3 class="text-lg text-dark font-semibold mb-4">Share this Memory</h3>
+                    <div class="flex gap-3 justify-center max-w-md mx-auto">
+                        <button onclick="shareContent()" class="flex-1 py-3 border border-gold/30 rounded-lg hover:bg-gold-light/30 transition flex items-center justify-center gap-2 text-sm text-dark font-medium">
+                            <i data-lucide="send" class="w-4 h-4"></i> Share
+                        </button>
+                        <button onclick="copyLink()" class="flex-1 py-3 border border-gold/30 rounded-lg hover:bg-gold-light/30 transition flex items-center justify-center gap-2 text-sm text-dark font-medium">
+                            <i data-lucide="link" class="w-4 h-4"></i> Copy
+                        </button>
                     </div>
                 </div>
 

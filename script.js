@@ -158,8 +158,6 @@ async function loadAndInitModel() {
                                 const elFrom = document.getElementById('message-from');
                                 const elSign = document.getElementById('message-sign');
                                 const elItem = document.getElementById('item-id-label');
-                                const elDate = document.getElementById('message-date');
-                                const elDateWrap = document.getElementById('message-date-wrap');
                                 const vidIframe = document.getElementById('embedded-iframe');
                                 const msgBody = document.getElementById('message-body');
                                 const msgTitle = document.getElementById('message-title');
@@ -176,7 +174,6 @@ async function loadAndInitModel() {
                                 const locationEmbedWrap = document.getElementById('location-embed-wrap');
 
                                 const sender = ITEM_DATA.sender || ITEM_DATA.from || ITEM_DATA.created_by || null;
-                                const createdAt = ITEM_DATA.created_at || ITEM_DATA.createdAt || null;
                                 // Allow an explicit signature field to override the sender display
                                 const signature = ITEM_DATA.signature || ITEM_DATA.sign || null;
                                 const video = ITEM_DATA.video_url || ITEM_DATA.video || ITEM_DATA.videoUrl || null;
@@ -189,16 +186,11 @@ async function loadAndInitModel() {
                                 const message = ITEM_DATA.message || ITEM_DATA.text || ITEM_DATA.msg || null;
                                 const title = ITEM_DATA.title || ITEM_DATA.heading || null;
 
-                                if (elFrom && sender) elFrom.innerText = `From: ${sender}`;
                                 if (elSign) {
                                     if (signature) elSign.innerText = signature;
-                                    else if (sender) elSign.innerText = `- ${sender}`;
+                                    else if (sender) elSign.innerText = `From ${sender}`;
                                 }
-                                if (elItem) elItem.innerText = `Authenticated Item #${ITEM_ID}`;
-                                if (elDate && elDateWrap && createdAt) {
-                                    elDate.innerText = new Date(createdAt).toLocaleDateString();
-                                    elDateWrap.style.display = 'flex';
-                                }
+                                if (elItem) elItem.innerText = `#${ITEM_ID}`;
 
                                 if (vidIframe && video) {
                                     // Transform common YouTube watch URLs into embed URLs when necessary.
