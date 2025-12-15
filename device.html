@@ -298,9 +298,14 @@
                             </div>
                             <span class="pill pill-soft">Map</span>
                         </div>
-                        <div class="location-body">
-                            <p id="location-label" class="text-dark font-semibold mb-2"></p>
-                            <p class="text-medium text-sm mb-4">Open the pinned place linked to this memory.</p>
+                        <div class="location-body space-y-4">
+                            <div>
+                                <p id="location-label" class="text-dark font-semibold"></p>
+                                <p class="text-medium text-sm">Pinned place for this memory.</p>
+                            </div>
+                            <div id="location-embed-wrap" class="map-embed hidden">
+                                <iframe id="location-embed" class="w-full h-full rounded-xl" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
                             <a id="location-link" class="btn-gold w-full py-3 rounded-lg inline-flex items-center justify-center gap-2" target="_blank" rel="noopener noreferrer">
                                 <i data-lucide="navigation" class="w-4 h-4"></i>
                                 <span>Open in Maps</span>

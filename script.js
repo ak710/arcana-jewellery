@@ -172,6 +172,8 @@ async function loadAndInitModel() {
                                 const locationCard = document.getElementById('location-card');
                                 const locationLabel = document.getElementById('location-label');
                                 const locationLink = document.getElementById('location-link');
+                                const locationEmbed = document.getElementById('location-embed');
+                                const locationEmbedWrap = document.getElementById('location-embed-wrap');
 
                                 const sender = ITEM_DATA.sender || ITEM_DATA.from || ITEM_DATA.created_by || null;
                                 const createdAt = ITEM_DATA.created_at || ITEM_DATA.createdAt || null;
@@ -245,10 +247,23 @@ async function loadAndInitModel() {
                                 if (locationCard && locationLabel && locationLink) {
                                     const locHref = locationUrl || (locationLat && locationLng ? `https://maps.google.com/?q=${locationLat},${locationLng}` : null);
                                     const label = locationLabelVal || (locationLat && locationLng ? `${locationLat}, ${locationLng}` : null);
+
+                                    // Build embed URL when possible
+                                    const locEmbed = (locationUrl && locationUrl.includes('embed'))
+                                        ? locationUrl
+                                        : (locationLat && locationLng ? `https://www.google.com/maps?q=${locationLat},${locationLng}&output=embed` : null);
+
                                     if (locHref && label) {
                                         locationLabel.innerText = label;
                                         locationLink.href = locHref;
                                         locationCard.classList.remove('hidden');
+
+                                        if (locationEmbed && locationEmbedWrap && locEmbed) {
+                                            locationEmbed.src = locEmbed;
+                                            locationEmbedWrap.classList.remove('hidden');
+                                        } else if (locationEmbedWrap) {
+                                            locationEmbedWrap.classList.add('hidden');
+                                        }
                                     } else {
                                         locationCard.classList.add('hidden');
                                     }
