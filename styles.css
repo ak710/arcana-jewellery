@@ -38,6 +38,12 @@ html, body {
     overflow: auto;
     font-family: 'Outfit', sans-serif;
     color: var(--text-dark);
+    border-top: none !important;
+}
+
+/* Remove any decorative bars or top borders */
+body::before {
+    display: none !important;
 }
 
 h1, h2, h3, .serif {
