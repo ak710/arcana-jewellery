@@ -217,17 +217,47 @@ async function loadAndInitModel() {
                                     }
                                 }
 
-                                // Song integration (prefer embeds, fallback to link)
+                                // Song integration (convert Spotify URLs to embeds automatically)
                                 if (songCard) {
                                     if (song) {
-                                        const isEmbed = typeof song === 'string' && song.includes('embed');
+                                        let embedUrl = song;
+                                        let isEmbed = false;
+                                        
+                                        // Convert Spotify URLs to embed format
+                                        try {
+                                            const songUrl = new URL(song);
+                                            if (songUrl.hostname.includes('spotify.com') || songUrl.hostname.includes('open.spotify.com')) {
+                                                // Check if it's already an embed URL
+                                                if (song.includes('/embed/')) {
+                                                    isEmbed = true;
+                                                    embedUrl = song;
+                                                } else {
+                                                    // Convert regular Spotify URL to embed
+                                                    // Format: https://open.spotify.com/track/ID or /playlist/ID or /album/ID
+                                                    const pathParts = songUrl.pathname.split('/').filter(p => p);
+                                                    if (pathParts.length >= 2) {
+                                                        const type = pathParts[0]; // track, playlist, album, etc.
+                                                        const id = pathParts[1].split('?')[0]; // Remove query params
+                                                        embedUrl = `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`;
+                                                        isEmbed = true;
+                                                    }
+                                                }
+                                            } else if (song.includes('embed')) {
+                                                // Other embed URLs (YouTube, etc.)
+                                                isEmbed = true;
+                                            }
+                                        } catch (e) {
+                                            // If URL parsing fails, check if it contains 'embed' keyword
+                                            isEmbed = song.includes('embed');
+                                        }
+                                        
                                         if (songEmbed) {
-                                            songEmbed.src = song;
+                                            songEmbed.src = embedUrl;
                                             songEmbed.style.display = isEmbed ? 'block' : 'none';
                                         }
                                         if (songFallback && songLink) {
                                             songFallback.style.display = isEmbed ? 'none' : 'block';
-                                            songLink.href = song;
+                                            songLink.href = song; // Keep original URL for fallback link
                                         }
                                         songCard.classList.remove('hidden');
                                     } else {
