@@ -252,10 +252,8 @@ async function loadAndInitModel() {
                                         const songLink = document.getElementById('song-link');
                                         const songArt = document.getElementById('song-art');
                                         
-                                        // Determine if song is Spotify and extract ID
-                                        let spotifyId = null;
+                                        // Determine if song is Spotify and extract metadata via oEmbed API
                                         let spotifyUrl = song;
-                                        let songMetadata = { title: 'Listen to Our Song', artist: 'On Spotify' };
                                         
                                         try {
                                             const songUrl = new URL(song);
@@ -264,20 +262,44 @@ async function loadAndInitModel() {
                                                 const pathParts = songUrl.pathname.split('/').filter(p => p);
                                                 if (pathParts.length >= 2) {
                                                     const type = pathParts[0]; // track, playlist, album
-                                                    spotifyId = pathParts[1].split('?')[0];
+                                                    const spotifyId = pathParts[1].split('?')[0];
                                                     spotifyUrl = `https://open.spotify.com/${type}/${spotifyId}`;
                                                     
-                                                    // Set album art to Spotify album art placeholder
-                                                    songArt.src = `https://i.scdn.co/image/${spotifyId}`;
+                                                    // Fetch metadata from Spotify oEmbed API (no auth required)
+                                                    fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl)}`)
+                                                        .then(res => res.json())
+                                                        .then(data => {
+                                                            // Populate album art from oEmbed response
+                                                            if (songArt && data.thumbnail_url) {
+                                                                songArt.src = data.thumbnail_url;
+                                                                songArt.alt = data.title || 'Album art';
+                                                            }
+                                                            
+                                                            // Populate track title and artist
+                                                            if (songTitle && data.title) {
+                                                                // Spotify oEmbed returns format "Song Title by Artist Name"
+                                                                const titleParts = data.title.split(' by ');
+                                                                songTitle.innerText = titleParts[0] || data.title;
+                                                            }
+                                                            if (songArtist && data.title) {
+                                                                const titleParts = data.title.split(' by ');
+                                                                songArtist.innerText = titleParts[1] || 'On Spotify';
+                                                            }
+                                                        })
+                                                        .catch(err => {
+                                                            console.warn('Failed to fetch Spotify metadata:', err);
+                                                            // Fallback: use gradient background if fetch fails
+                                                            if (songTitle) songTitle.innerText = 'Listen to Our Song';
+                                                            if (songArtist) songArtist.innerText = 'On Spotify';
+                                                        });
                                                 }
                                             }
-                                        } catch (e) { /* ignore invalid URLs */ }
+                                        } catch (e) { 
+                                            console.warn('Invalid Spotify URL:', e);
+                                        }
                                         
-                                        // Populate metadata
-                                        if (songTitle) songTitle.innerText = songMetadata.title || 'Listen to Our Song';
-                                        if (songArtist) songArtist.innerText = songMetadata.artist || 'On Spotify';
+                                        // Set link immediately (metadata will populate async)
                                         if (songLink) songLink.href = spotifyUrl;
-                                        
                                         songCard.classList.remove('hidden');
                                     } else {
                                         songCard.classList.add('hidden');
@@ -294,14 +316,29 @@ async function loadAndInitModel() {
                                         locationLink.href = locHref;
                                         locationCard.classList.remove('hidden');
 
-                                        // Generate static map image using Google Static Maps API
+                                        // Generate static map image using OpenStreetMap (no API key required)
                                         const locationMapImage = document.getElementById('location-map-image');
                                         if (locationMapImage && locationLat && locationLng) {
-                                            // Using Google Static Maps (free tier available)
-                                            const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${locationLat},${locationLng}&zoom=15&size=800x450&style=feature:all|element:labels|visibility:off&style=feature:water|color:0xb3d9ff&style=feature:land|color:0xf3f3f3&style=feature:road|visibility:off&style=feature:administrative|element:geometry.stroke|color:0xcccccc&markers=color:red%7C${locationLat},${locationLng}&key=AIzaSyDummyKey`;
-                                            // Fallback to simple gradient if Static Maps unavailable
-                                            locationMapImage.style.background = `linear-gradient(135deg, rgba(201, 169, 97, 0.1), rgba(100, 149, 237, 0.08))`;
-                                            locationMapImage.alt = `Location: ${label}`;
+                                            // Using Staticmap.org service (free, no API key)
+                                            // Format: https://staticmap.openstreetmap.de/staticmap.php?center=LAT,LNG&zoom=ZOOM&size=WIDTHxHEIGHT&markers=LAT,LNG,lightblue1
+                                            const mapWidth = 800;
+                                            const mapHeight = 450;
+                                            const zoom = 15;
+                                            const mapImageUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${locationLat},${locationLng}&zoom=${zoom}&size=${mapWidth}x${mapHeight}&markers=${locationLat},${locationLng},ol-marker`;
+                                            
+                                            locationMapImage.src = mapImageUrl;
+                                            locationMapImage.alt = `Map: ${label}`;
+                                            locationMapImage.style.background = `#f3f4f6`; // Light gray fallback
+                                            
+                                            // Handle image load error gracefully
+                                            locationMapImage.onerror = () => {
+                                                console.warn('Failed to load map image, using fallback');
+                                                locationMapImage.style.background = `linear-gradient(135deg, rgba(201, 169, 97, 0.1), rgba(100, 149, 237, 0.08))`;
+                                                locationMapImage.style.display = 'flex';
+                                                locationMapImage.style.alignItems = 'center';
+                                                locationMapImage.style.justifyContent = 'center';
+                                                locationMapImage.innerHTML = `<span style="color: var(--text-medium); font-size: 14px;">📍 ${label}</span>`;
+                                            };
                                         }
                                     } else {
                                         locationCard.classList.add('hidden');
