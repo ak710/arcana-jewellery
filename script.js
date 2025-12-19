@@ -308,23 +308,72 @@ async function loadAndInitModel() {
 
                                 // REFACTORED: LOCATION MEMORY — Static map preview (not live embed)
                                 if (locationCard && locationLabel && locationLink) {
-                                    const locHref = locationUrl || (locationLat && locationLng ? `https://maps.google.com/?q=${locationLat},${locationLng}` : null);
-                                    const label = locationLabelVal || (locationLat && locationLng ? `${locationLat}, ${locationLng}` : null);
+                                    let locHref = locationUrl || (locationLat && locationLng ? `https://maps.google.com/?q=${locationLat},${locationLng}` : null);
+                                    let label = locationLabelVal || (locationLat && locationLng ? `${locationLat}, ${locationLng}` : null);
+                                    let finalLat = locationLat;
+                                    let finalLng = locationLng;
+
+                                    // If we have a Google Maps URL but no coordinates, extract the location query
+                                    if (locationUrl && !locationLat && !locationLng) {
+                                        try {
+                                            const url = new URL(locationUrl);
+                                            const query = url.searchParams.get('q');
+                                            if (query) {
+                                                label = locationLabelVal || decodeURIComponent(query.replace(/\+/g, ' '));
+                                                locHref = locationUrl;
+                                                
+                                                // Geocode the location using Nominatim (OpenStreetMap's free geocoding service)
+                                                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`)
+                                                    .then(res => res.json())
+                                                    .then(data => {
+                                                        if (data && data.length > 0) {
+                                                            finalLat = parseFloat(data[0].lat);
+                                                            finalLng = parseFloat(data[0].lon);
+                                                            
+                                                            // Generate map after geocoding
+                                                            const locationMapImage = document.getElementById('location-map-image');
+                                                            if (locationMapImage && finalLat && finalLng) {
+                                                                const mapWidth = 800;
+                                                                const mapHeight = 450;
+                                                                const zoom = 15;
+                                                                const mapImageUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${finalLat},${finalLng}&zoom=${zoom}&size=${mapWidth}x${mapHeight}&markers=${finalLat},${finalLng},ol-marker`;
+                                                                
+                                                                locationMapImage.src = mapImageUrl;
+                                                                locationMapImage.alt = `Map: ${label}`;
+                                                                locationMapImage.style.background = `#f3f4f6`;
+                                                                
+                                                                locationMapImage.onerror = () => {
+                                                                    console.warn('Failed to load map image, using fallback');
+                                                                    locationMapImage.style.background = `linear-gradient(135deg, rgba(201, 169, 97, 0.1), rgba(100, 149, 237, 0.08))`;
+                                                                    locationMapImage.style.display = 'flex';
+                                                                    locationMapImage.style.alignItems = 'center';
+                                                                    locationMapImage.style.justifyContent = 'center';
+                                                                    locationMapImage.innerHTML = `<span style="color: var(--text-medium); font-size: 14px;">📍 ${label}</span>`;
+                                                                };
+                                                            }
+                                                        }
+                                                    })
+                                                    .catch(err => {
+                                                        console.warn('Geocoding failed:', err);
+                                                    });
+                                            }
+                                        } catch (e) {
+                                            console.warn('Failed to parse location URL:', e);
+                                        }
+                                    }
 
                                     if (locHref && label) {
                                         locationLabel.innerText = label;
                                         locationLink.href = locHref;
                                         locationCard.classList.remove('hidden');
 
-                                        // Generate static map image using OpenStreetMap (no API key required)
+                                        // Generate static map image if we have coordinates
                                         const locationMapImage = document.getElementById('location-map-image');
-                                        if (locationMapImage && locationLat && locationLng) {
-                                            // Using Staticmap.org service (free, no API key)
-                                            // Format: https://staticmap.openstreetmap.de/staticmap.php?center=LAT,LNG&zoom=ZOOM&size=WIDTHxHEIGHT&markers=LAT,LNG,lightblue1
+                                        if (locationMapImage && finalLat && finalLng) {
                                             const mapWidth = 800;
                                             const mapHeight = 450;
                                             const zoom = 15;
-                                            const mapImageUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${locationLat},${locationLng}&zoom=${zoom}&size=${mapWidth}x${mapHeight}&markers=${locationLat},${locationLng},ol-marker`;
+                                            const mapImageUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${finalLat},${finalLng}&zoom=${zoom}&size=${mapWidth}x${mapHeight}&markers=${finalLat},${finalLng},ol-marker`;
                                             
                                             locationMapImage.src = mapImageUrl;
                                             locationMapImage.alt = `Map: ${label}`;
