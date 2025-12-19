@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="Favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
       @font-face {
         font-family: 'KudryashevDisplay';
@@ -19,6 +19,10 @@
              url('https://db.onlinewebfonts.com/t/157c6cc36dd65b1b2adc9e7f3329c761.svg#KudryashevDisplay') format('svg');
       }
       .logo { font-family: 'KudryashevDisplay', serif; }
+      /* Design System: Serif font (Playfair Display) for emotional content & titles */
+      .serif-title, h1, h2, h3, .serif { font-family: 'Playfair Display', serif; font-weight: 700; font-style: normal; }
+      /* Design System: Sans-serif font (Inter) for UI & labels */
+      body, .sans-serif { font-family: 'Inter', sans-serif; font-weight: 400; font-style: normal; }
     </style>
         <script>
             window.tailwind = window.tailwind || {};
@@ -226,107 +230,113 @@
             </div>
         </div>
 
-        <!-- SCREEN 3: THE MESSAGE -->
+        <!-- SCREEN 3: THE MESSAGE — REVEAL PAGE (Premium, Minimal, Cohesive) -->
         <div id="screen-message" class="screen hidden-up bg-white/95 backdrop-blur-sm">
-            <div class="w-full max-w-3xl h-full overflow-y-auto p-6 pt-12 pb-20">
+            <div class="reveal-page-wrapper overflow-y-auto w-full h-full">
                 
-                <!-- Header -->
-                <div class="flex justify-between items-center mb-12">
-                    <button onclick="goBackToHome()" class="text-medium hover:text-gold transition">
-                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                <!-- HEADER: Back arrow (de-emphasized) + Logo -->
+                <div class="flex justify-between items-center mb-20">
+                    <button onclick="goBackToHome()" class="back-arrow">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
                     </button>
-                    <div class="logo text-3xl text-dark">Arcana</div>
-                    <div class="w-6"></div>
+                    <div class="logo text-4xl text-dark">Arcana</div>
+                    <div class="w-5"></div>
                 </div>
 
-                <!-- Title & Author -->
-                <div class="text-center mb-12">
-                    <h1 id="message-title" class="serif text-4xl md:text-5xl text-dark font-bold leading-tight mb-4"></h1>
-                    <p id="message-sign" class="text-gold uppercase tracking-[0.3em] text-sm"></p>
+                <!-- TITLE SECTION: Large serif title + Name below in small-caps -->
+                <div class="text-center mb-20">
+                    <h1 id="message-title" class="serif-title text-5xl md:text-6xl text-dark font-bold leading-tight mb-6"></h1>
+                    <span class="section-label accent" id="message-sign"></span>
                 </div>
 
-                <!-- Video Message -->
-                <div class="mb-12">
-                    <div class="aspect-video w-full bg-black rounded-2xl overflow-hidden shadow-2xl">
-                        <iframe id="embedded-iframe" class="w-full h-full object-cover" title="Video message" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    </div>
-                </div>
-
-                <!-- Text Message (Stylized) -->
-                <div class="mb-16 text-center">
-                    <div class="inline-block max-w-2xl">
-                        <div class="w-16 h-0.5 bg-gold mx-auto mb-6"></div>
-                        <p id="message-body" class="text-xl md:text-2xl text-dark leading-relaxed font-light italic"></p>
-                        <div class="w-16 h-0.5 bg-gold mx-auto mt-6"></div>
-                    </div>
-                </div>
-
-                <!-- Voice Note -->
-                <div id="voice-card" class="mb-12 hidden">
+                <!-- VIDEO MEMORY: Custom video card (replaces raw embed) -->
+                <div id="video-card" class="memory-card mb-20 hidden">
                     <div class="text-center mb-4">
-                        <h3 class="serif text-2xl text-dark font-semibold flex items-center justify-center gap-2">
-                            <i data-lucide="mic" class="w-5 h-5 text-gold"></i>
-                            A Voice Note for You
-                        </h3>
+                        <span class="section-label">Video Memory</span>
                     </div>
-                    <div class="flex justify-center">
-                        <audio id="voice-audio" controls preload="none" class="voice-player"></audio>
-                    </div>
-                </div>
-
-                <!-- Song -->
-                <div id="song-card" class="mb-12 hidden">
-                    <div class="text-center mb-6">
-                        <h3 class="serif text-2xl md:text-3xl text-dark font-semibold italic">
-                            The one song that reminds me of you
-                        </h3>
-                    </div>
-                    <div class="song-container">
-                        <iframe id="song-embed" class="w-full rounded-2xl shadow-xl" style="height: 152px; border: 0;" allow="autoplay; clipboard-write; encrypted-media" loading="lazy"></iframe>
-                        <div id="song-fallback" class="song-fallback-clean hidden">
-                            <a id="song-link" class="btn-gold py-4 px-8 rounded-xl inline-flex items-center justify-center gap-2 text-lg" target="_blank" rel="noopener noreferrer">
-                                <i data-lucide="music" class="w-5 h-5"></i>
-                                <span>Listen to Our Song</span>
-                            </a>
+                    <!-- Video thumbnail + play icon (opens in modal/fullscreen on click) -->
+                    <div id="video-thumbnail-container" class="relative aspect-video w-full bg-gradient-to-br from-gold/20 to-gray-900/20 rounded-lg overflow-hidden cursor-pointer group">
+                        <img id="video-thumbnail" src="" alt="Video thumbnail" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-300" />
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition duration-300">
+                            <div class="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition duration-300">
+                                <i data-lucide="play" class="w-8 h-8 text-gold ml-1"></i>
+                            </div>
                         </div>
                     </div>
+                    <p class="text-center text-sm text-medium mt-4 font-light">A memory captured just for you</p>
                 </div>
 
-                <!-- Location -->
-                <div id="location-card" class="mb-16 hidden">
-                    <div class="text-center mb-6">
-                        <h3 class="serif text-2xl md:text-3xl text-dark font-semibold mb-2">
-                            <span id="location-label"></span>
-                        </h3>
-                        <p class="text-medium text-sm">A place we'll always remember</p>
-                    </div>
-                    <div id="location-embed-wrap" class="hidden mb-6">
-                        <div class="rounded-2xl overflow-hidden">
-                            <iframe id="location-embed" class="w-full" style="border:0; height: 400px; display: block;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                        </div>
-                    </div>
+                <!-- LOVE NOTE: Clean, readable note (break long paragraphs) -->
+                <div class="memory-card mb-20">
+                    <span class="section-label">Love Note</span>
+                    <p id="message-body" class="text-lg md:text-xl text-dark leading-relaxed font-light text-center break-words whitespace-pre-wrap"></p>
+                </div>
+
+                <!-- SONG MEMORY: Album art + song title + artist + Play button -->
+                <div id="song-card" class="memory-card mb-20 hidden">
+                    <span class="section-label">Favourite Song</span>
                     <div class="text-center">
-                        <a id="location-link" class="btn-outline-gold py-3 px-6 rounded-xl inline-flex items-center justify-center gap-2" target="_blank" rel="noopener noreferrer">
+                        <!-- Album art or placeholder -->
+                        <div id="song-art-container" class="w-32 h-32 mx-auto mb-4 rounded-lg bg-gradient-to-br from-gold/30 to-gray-200/30 flex items-center justify-center overflow-hidden">
+                            <img id="song-art" src="" alt="Album art" class="w-full h-full object-cover" />
+                        </div>
+                        <!-- Song metadata (optional, populated if available) -->
+                        <h3 id="song-title" class="serif-title text-xl text-dark mb-1">—</h3>
+                        <p id="song-artist" class="text-medium text-sm mb-6 font-light">—</p>
+                        <!-- Play on Spotify button -->
+                        <a id="song-link" class="btn-primary" target="_blank" rel="noopener noreferrer">
+                            <i data-lucide="music" class="w-4 h-4"></i>
+                            <span>Play on Spotify</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- VOICE NOTE (if present) -->
+                <div id="voice-card" class="memory-card mb-20 hidden">
+                    <span class="section-label">Voice Message</span>
+                    <div class="text-center">
+                        <div class="flex justify-center mb-4">
+                            <i data-lucide="mic" class="w-6 h-6 text-gold"></i>
+                        </div>
+                        <audio id="voice-audio" controls preload="none" class="voice-player mx-auto mb-4"></audio>
+                        <p class="text-sm text-medium font-light">A voice note from the heart</p>
+                    </div>
+                </div>
+
+                <!-- LOCATION MEMORY: Static map preview (not live embed) -->
+                <div id="location-card" class="memory-card mb-20 hidden">
+                    <span class="section-label">Special Place</span>
+                    <div class="text-center">
+                        <h3 id="location-label" class="serif-title text-2xl text-dark mb-2"></h3>
+                        <p class="text-sm text-medium font-light mb-6">A place we'll always remember</p>
+                        <!-- Static map preview (thumbnail) -->
+                        <div id="location-map-preview" class="w-full aspect-video rounded-lg bg-gradient-to-br from-gold/10 to-blue-100/20 mb-6 overflow-hidden">
+                            <img id="location-map-image" src="" alt="Location map" class="w-full h-full object-cover" />
+                        </div>
+                        <!-- Open in Maps button -->
+                        <a id="location-link" class="btn-primary-outline" target="_blank" rel="noopener noreferrer">
                             <i data-lucide="navigation" class="w-4 h-4"></i>
                             <span>Open in Maps</span>
                         </a>
                     </div>
                 </div>
 
-                
-
-                <!-- Share Section -->
-                <div class="text-center pt-8 border-t border-gold/20">
-                    <h3 class="text-lg text-dark font-semibold mb-4">Share this Memory</h3>
+                <!-- SHARE SECTION: Minimal buttons -->
+                <div class="section-spacer"></div>
+                <div class="text-center pt-12 border-t border-gold/15">
+                    <span class="section-label">Share This Memory</span>
                     <div class="flex gap-3 justify-center max-w-md mx-auto">
-                        <button onclick="shareContent()" class="flex-1 py-3 border border-gold/30 rounded-lg hover:bg-gold-light/30 transition flex items-center justify-center gap-2 text-sm text-dark font-medium">
+                        <button onclick="shareContent()" class="btn-primary-outline flex-1">
                             <i data-lucide="send" class="w-4 h-4"></i> Share
                         </button>
-                        <button onclick="copyLink()" class="flex-1 py-3 border border-gold/30 rounded-lg hover:bg-gold-light/30 transition flex items-center justify-center gap-2 text-sm text-dark font-medium">
-                            <i data-lucide="link" class="w-4 h-4"></i> Copy
+                        <button onclick="copyLink()" class="btn-primary-outline flex-1">
+                            <i data-lucide="link" class="w-4 h-4"></i> Copy Link
                         </button>
                     </div>
                 </div>
+
+                <!-- Extra spacing for mobile scroll comfort -->
+                <div class="h-12"></div>
 
             </div>
         </div>

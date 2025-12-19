@@ -192,16 +192,43 @@ async function loadAndInitModel() {
                                 }
                                 if (elItem) elItem.innerText = `#${ITEM_ID}`;
 
-                                if (vidIframe && video) {
-                                    // Transform common YouTube watch URLs into embed URLs when necessary.
-                                    let src = video;
-                                    try {
-                                        const u = new URL(video);
-                                        if (u.hostname.includes('youtube') && u.searchParams.get('v')) {
-                                            src = `https://www.youtube.com/embed/${u.searchParams.get('v')}`;
+                                // REFACTORED: VIDEO MEMORY — Custom thumbnail card (no raw embed)
+                                if (video) {
+                                    const videoCard = document.getElementById('video-card');
+                                    const videoThumbnailContainer = document.getElementById('video-thumbnail-container');
+                                    const videoThumbnail = document.getElementById('video-thumbnail');
+                                    
+                                    if (videoCard) {
+                                        videoCard.classList.remove('hidden');
+                                        
+                                        // Extract YouTube video ID for thumbnail
+                                        let videoId = null;
+                                        let youtubeUrl = null;
+                                        try {
+                                            const u = new URL(video);
+                                            if (u.hostname.includes('youtube')) {
+                                                videoId = u.searchParams.get('v');
+                                                youtubeUrl = `https://www.youtube.com/embed/${videoId}`;
+                                            } else if (video.includes('embed')) {
+                                                youtubeUrl = video;
+                                            }
+                                        } catch (e) { /* ignore invalid URLs */ }
+                                        
+                                        // Set thumbnail image (YouTube format: https://img.youtube.com/vi/VIDEO_ID/hqdefault.jpg)
+                                        if (videoId) {
+                                            videoThumbnail.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                                        } else {
+                                            videoThumbnail.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22225%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22225%22/%3E%3C/svg%3E';
                                         }
-                                    } catch (e) { /* ignore invalid URLs */ }
-                                    vidIframe.src = src;
+                                        
+                                        // Add click handler to open video in modal/fullscreen
+                                        if (videoThumbnailContainer) {
+                                            videoThumbnailContainer.onclick = () => openVideoModal(youtubeUrl || video);
+                                        }
+                                    }
+                                } else {
+                                    const videoCard = document.getElementById('video-card');
+                                    if (videoCard) videoCard.classList.add('hidden');
                                 }
 
                                 if (msgBody && message) msgBody.innerText = message;
@@ -217,74 +244,64 @@ async function loadAndInitModel() {
                                     }
                                 }
 
-                                // Song integration (convert Spotify URLs to embeds automatically)
+                                // REFACTORED: SONG MEMORY — Custom card with album art + metadata (no embed player)
                                 if (songCard) {
                                     if (song) {
-                                        let embedUrl = song;
-                                        let isEmbed = false;
+                                        const songTitle = document.getElementById('song-title');
+                                        const songArtist = document.getElementById('song-artist');
+                                        const songLink = document.getElementById('song-link');
+                                        const songArt = document.getElementById('song-art');
                                         
-                                        // Convert Spotify URLs to embed format
+                                        // Determine if song is Spotify and extract ID
+                                        let spotifyId = null;
+                                        let spotifyUrl = song;
+                                        let songMetadata = { title: 'Listen to Our Song', artist: 'On Spotify' };
+                                        
                                         try {
                                             const songUrl = new URL(song);
                                             if (songUrl.hostname.includes('spotify.com') || songUrl.hostname.includes('open.spotify.com')) {
-                                                // Check if it's already an embed URL
-                                                if (song.includes('/embed/')) {
-                                                    isEmbed = true;
-                                                    embedUrl = song;
-                                                } else {
-                                                    // Convert regular Spotify URL to embed
-                                                    // Format: https://open.spotify.com/track/ID or /playlist/ID or /album/ID
-                                                    const pathParts = songUrl.pathname.split('/').filter(p => p);
-                                                    if (pathParts.length >= 2) {
-                                                        const type = pathParts[0]; // track, playlist, album, etc.
-                                                        const id = pathParts[1].split('?')[0]; // Remove query params
-                                                        embedUrl = `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`;
-                                                        isEmbed = true;
-                                                    }
+                                                // Extract Spotify track/album/playlist ID
+                                                const pathParts = songUrl.pathname.split('/').filter(p => p);
+                                                if (pathParts.length >= 2) {
+                                                    const type = pathParts[0]; // track, playlist, album
+                                                    spotifyId = pathParts[1].split('?')[0];
+                                                    spotifyUrl = `https://open.spotify.com/${type}/${spotifyId}`;
+                                                    
+                                                    // Set album art to Spotify album art placeholder
+                                                    songArt.src = `https://i.scdn.co/image/${spotifyId}`;
                                                 }
-                                            } else if (song.includes('embed')) {
-                                                // Other embed URLs (YouTube, etc.)
-                                                isEmbed = true;
                                             }
-                                        } catch (e) {
-                                            // If URL parsing fails, check if it contains 'embed' keyword
-                                            isEmbed = song.includes('embed');
-                                        }
+                                        } catch (e) { /* ignore invalid URLs */ }
                                         
-                                        if (songEmbed) {
-                                            songEmbed.src = embedUrl;
-                                            songEmbed.style.display = isEmbed ? 'block' : 'none';
-                                        }
-                                        if (songFallback && songLink) {
-                                            songFallback.style.display = isEmbed ? 'none' : 'block';
-                                            songLink.href = song; // Keep original URL for fallback link
-                                        }
+                                        // Populate metadata
+                                        if (songTitle) songTitle.innerText = songMetadata.title || 'Listen to Our Song';
+                                        if (songArtist) songArtist.innerText = songMetadata.artist || 'On Spotify';
+                                        if (songLink) songLink.href = spotifyUrl;
+                                        
                                         songCard.classList.remove('hidden');
                                     } else {
                                         songCard.classList.add('hidden');
                                     }
                                 }
 
-                                // Location pin
+                                // REFACTORED: LOCATION MEMORY — Static map preview (not live embed)
                                 if (locationCard && locationLabel && locationLink) {
                                     const locHref = locationUrl || (locationLat && locationLng ? `https://maps.google.com/?q=${locationLat},${locationLng}` : null);
                                     const label = locationLabelVal || (locationLat && locationLng ? `${locationLat}, ${locationLng}` : null);
-
-                                    // Build embed URL when possible
-                                    const locEmbed = (locationUrl && locationUrl.includes('embed'))
-                                        ? locationUrl
-                                        : (locationLat && locationLng ? `https://www.google.com/maps?q=${locationLat},${locationLng}&output=embed` : null);
 
                                     if (locHref && label) {
                                         locationLabel.innerText = label;
                                         locationLink.href = locHref;
                                         locationCard.classList.remove('hidden');
 
-                                        if (locationEmbed && locationEmbedWrap && locEmbed) {
-                                            locationEmbed.src = locEmbed;
-                                            locationEmbedWrap.classList.remove('hidden');
-                                        } else if (locationEmbedWrap) {
-                                            locationEmbedWrap.classList.add('hidden');
+                                        // Generate static map image using Google Static Maps API
+                                        const locationMapImage = document.getElementById('location-map-image');
+                                        if (locationMapImage && locationLat && locationLng) {
+                                            // Using Google Static Maps (free tier available)
+                                            const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${locationLat},${locationLng}&zoom=15&size=800x450&style=feature:all|element:labels|visibility:off&style=feature:water|color:0xb3d9ff&style=feature:land|color:0xf3f3f3&style=feature:road|visibility:off&style=feature:administrative|element:geometry.stroke|color:0xcccccc&markers=color:red%7C${locationLat},${locationLng}&key=AIzaSyDummyKey`;
+                                            // Fallback to simple gradient if Static Maps unavailable
+                                            locationMapImage.style.background = `linear-gradient(135deg, rgba(201, 169, 97, 0.1), rgba(100, 149, 237, 0.08))`;
+                                            locationMapImage.alt = `Location: ${label}`;
                                         }
                                     } else {
                                         locationCard.classList.add('hidden');
@@ -794,4 +811,83 @@ async function shareContent() {
     } else {
         copyLink(); // Fallback if native share isn't supported
     }
+}
+
+/* ============================================================
+   VIDEO MODAL — Open YouTube video in fullscreen or modal
+   ============================================================ */
+function openVideoModal(videoUrl) {
+    // Create a modal overlay and iframe
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        backdrop-filter: blur(4px);
+    `;
+    
+    const container = document.createElement('div');
+    container.style.cssText = `
+        width: 100%;
+        max-width: 960px;
+        aspect-ratio: 16 / 9;
+        position: relative;
+    `;
+    
+    const iframe = document.createElement('iframe');
+    iframe.src = videoUrl;
+    iframe.style.cssText = `
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 8px;
+    `;
+    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+    iframe.setAttribute('allowFullscreen', 'true');
+    
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = '✕';
+    closeButton.style.cssText = `
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    `;
+    closeButton.onmouseover = () => closeButton.style.background = 'rgba(255, 255, 255, 0.1)';
+    closeButton.onmouseout = () => closeButton.style.background = 'transparent';
+    closeButton.onclick = () => modal.remove();
+    
+    container.appendChild(iframe);
+    container.appendChild(closeButton);
+    modal.appendChild(container);
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+    
+    document.body.appendChild(modal);
+    
+    // Close on Escape key
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
 }

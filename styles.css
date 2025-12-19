@@ -8,6 +8,12 @@
     --text-dark: #1A1A1A;
     --text-medium: #4A4A4A;
     --text-light: #6B6B6B;
+    /* Design System: Consistent border radius */
+    --radius-card: 18px;
+    --radius-button: 12px;
+    /* Design System: Vertical rhythm (48-64px) */
+    --spacing-section: 56px;
+    --spacing-card: 28px;
 }
 
 /* Dark mode variables */
@@ -36,18 +42,13 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: auto;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', sans-serif;
     color: var(--text-dark);
     border-top: none !important;
 }
 
-/* Remove any decorative bars or top borders */
-body::before {
-    display: none !important;
-}
-
-h1, h2, h3, .serif {
-    font-family: 'Cinzel', serif;
+h1, h2, h3, .serif, .serif-title {
+    font-family: 'Playfair Display', serif;
 }
 
 /* Glassmorphism - Works in both light and dark modes */
@@ -284,6 +285,16 @@ select {
     border-color: var(--text-light);
 }
 
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(201, 169, 97, 0.1);
+}
+
 .dark input[type="text"],
 .dark input[type="email"],
 .dark input[type="url"],
@@ -294,11 +305,13 @@ select {
     border-color: #444;
 }
 
-input[type="text"]::placeholder,
-input[type="email"]::placeholder,
-input[type="url"]::placeholder,
-textarea::placeholder {
-    color: var(--text-light);
+.dark input[type="text"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="url"]:focus,
+.dark textarea:focus,
+.dark select:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(201, 169, 97, 0.1);
 }
 
 /* Theme toggle button styling */
@@ -472,4 +485,261 @@ html.dark body {
 .vault-card .btn-gold,
 .vault-card .btn-outline-gold {
     width: 100%;
+}
+
+/* ============================================================
+   VIDEO CARD — CUSTOM THUMBNAIL + PLAY ICON
+   ============================================================ */
+#video-thumbnail-container {
+    background-color: var(--bg-cream);
+}
+
+.dark #video-thumbnail-container {
+    background-color: #2A2A2A;
+}
+
+/* ============================================================
+   SONG CARD — ALBUM ART + METADATA
+   ============================================================ */
+#song-art-container {
+    flex-shrink: 0;
+}
+
+#song-art {
+    background: linear-gradient(135deg, rgba(201, 169, 97, 0.1), rgba(0, 0, 0, 0.05));
+}
+
+#song-title {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+#song-artist {
+    color: var(--text-medium);
+    font-weight: 400;
+}
+
+/* ============================================================
+   LOCATION CARD — STATIC MAP PREVIEW
+   ============================================================ */
+#location-map-preview {
+    background: linear-gradient(135deg, rgba(201, 169, 97, 0.08), rgba(100, 149, 237, 0.08));
+}
+
+#location-map-image {
+    background-color: var(--bg-cream);
+}
+
+.dark #location-map-image {
+    background-color: #2A2A2A;
+}
+
+/* ============================================================
+   VOICE PLAYER STYLING — MINIMAL
+   ============================================================ */
+.voice-player {
+    width: 100%;
+    max-width: 400px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(201, 169, 97, 0.1);
+    border: 1px solid rgba(201, 169, 97, 0.2);
+    color: var(--text-dark);
+}
+
+.voice-player::-webkit-media-controls-panel {
+    background-color: transparent;
+}
+
+.voice-player::-webkit-media-controls-mute-button {
+    color: var(--gold);
+}
+
+/* ============================================================
+   SCROLL BEHAVIOR FOR REVEAL PAGE
+   ============================================================ */
+#screen-message {
+    -webkit-overflow-scrolling: touch;
+}
+
+#screen-message .reveal-page-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 60px;
+}
+
+/* Ensure smooth scrolling on iOS */
+@supports (scrollbar-gutter: stable) {
+    #screen-message {
+        scrollbar-gutter: stable;
+    }
+}
+
+/* ============================================================
+   REUSABLE COMPONENTS — DESIGN SYSTEM
+   ============================================================ */
+
+/* MEMORY CARD COMPONENT
+   - Rounded container with generous padding
+   - Soft shadow or no shadow for minimalism
+   - Consistent border-radius 16-20px
+   - Vertical spacing between sections (48-64px)
+*/
+.memory-card {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(201, 169, 97, 0.15);
+    border-radius: var(--radius-card);
+    padding: 28px 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+}
+
+.memory-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: rgba(201, 169, 97, 0.25);
+}
+
+.dark .memory-card {
+    background: rgba(15, 15, 15, 0.85);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dark .memory-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* SECTION LABEL COMPONENT
+   - Small-caps or letter-spaced sans-serif
+   - Subtle, non-competing visual weight
+   - For emotional clarity without emphasis
+*/
+.section-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-medium);
+    margin: 0 0 12px 0;
+    display: block;
+}
+
+.section-label.accent {
+    color: var(--gold);
+}
+
+/* PRIMARY BUTTON COMPONENT
+   - Consistent styling across the page
+   - Minimal, premium appearance
+   - Soft interactions without visual chaos
+*/
+.btn-primary {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    padding: 14px 28px;
+    border-radius: var(--radius-button);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(201, 169, 97, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(201, 169, 97, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(201, 169, 97, 0.2);
+}
+
+.btn-primary-outline {
+    background: transparent;
+    color: var(--text-dark);
+    border: 1.5px solid var(--gold);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    padding: 12px 24px;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.btn-primary-outline:hover {
+    background: var(--gold);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(201, 169, 97, 0.25);
+}
+
+.dark .btn-primary-outline:hover {
+    background: var(--gold);
+    color: #0F0F0F;
+}
+
+/* BACK ARROW — VISUALLY DE-EMPHASIZED */
+.back-arrow {
+    color: var(--text-medium);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    padding: 8px;
+    margin: -8px 0 0 -8px;
+}
+
+.back-arrow:hover {
+    color: var(--gold);
+    opacity: 1;
+}
+
+/* VERTICAL RHYTHM ENFORCER
+   - Maintains consistent spacing between major sections
+   - Ensures emotional breathing room between content blocks
+*/
+.section-spacer {
+    height: var(--spacing-section);
+}
+
+@media (max-width: 768px) {
+    .section-spacer {
+        height: calc(var(--spacing-section) * 0.75);
+    }
+    
+    .memory-card {
+        padding: 24px;
+    }
+}
+
+/* EMOTIONAL MINIMAL WRAPPER — "Opening a jewellery box"
+   - Quiet presentation
+   - Content should never compete for attention
+   - Premium, intentional spacing
+*/
+.reveal-page-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 24px;
+}
+
+@media (max-width: 768px) {
+    .reveal-page-wrapper {
+        padding: 40px 16px;
+    }
 }

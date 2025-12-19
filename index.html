@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="Favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
       @font-face {
         font-family: 'KudryashevDisplay';
@@ -19,6 +19,10 @@
              url('https://db.onlinewebfonts.com/t/157c6cc36dd65b1b2adc9e7f3329c761.svg#KudryashevDisplay') format('svg');
       }
       .logo { font-family: 'KudryashevDisplay', serif; }
+      /* Design System: Serif font (Playfair Display) for emotional content & titles */
+      .serif-title, h1, h2, h3, .serif { font-family: 'Playfair Display', serif; font-weight: 700; font-style: normal; }
+      /* Design System: Sans-serif font (Inter) for UI & labels */
+      body, .sans-serif { font-family: 'Inter', sans-serif; font-weight: 400; font-style: normal; }
     </style>
     <script>
       window.tailwind = window.tailwind || {};
@@ -39,6 +43,7 @@
       };
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
   </head>
@@ -48,21 +53,48 @@
       <span id="theme-icon">🌙</span>
     </button>
 
-    <div class="max-w-xl w-full text-center">
-      <div class="logo text-6xl mb-6" style="color: var(--text-dark);">Arcana</div>
-      <h1 class="serif text-4xl mb-4" style="color: var(--text-dark);">Arcana Item Portal</h1>
-      <p class="mb-6" style="color: var(--text-medium);">Scan your jewellery item or enter its ID to view the personalised portal.</p>
+    <div class="reveal-page-wrapper flex flex-col items-center justify-center min-h-screen">
+      <!-- Logo -->
+      <div class="logo text-6xl mb-8" style="color: var(--text-dark);">Arcana</div>
 
-      <div class="glass-panel p-6 rounded-2xl mb-6">
+      <!-- Title & Description -->
+      <div class="text-center mb-12 max-w-lg">
+        <h1 class="serif-title text-5xl md:text-6xl font-bold text-dark leading-tight mb-4">Arcana Item Portal</h1>
+        <p class="text-lg text-medium font-light leading-relaxed">Scan your jewellery item or enter its ID to view the personalised portal.</p>
+      </div>
+
+      <!-- NFC & Manual Entry Card -->
+      <div class="memory-card w-full max-w-lg mb-8">
         <div id="nfc-area" class="space-y-4">
-          <button id="btn-scan" class="btn-gold w-full py-3 rounded-lg">Scan via Web NFC</button>
-          <div class="text-sm" style="color: var(--text-medium);">OR</div>
-          <input id="manual-id" type="text" placeholder="Enter item ID (e.g. 8842)" class="w-full p-3 rounded-md border dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-white" style="background-color: var(--bg-white); color: var(--text-dark); border-color: var(--text-light);" />
-          <button id="btn-go" class="btn-outline-gold w-full mt-2 py-3 rounded-lg">Open Item</button>
+          <!-- Scan Button -->
+          <button id="btn-scan" class="btn-primary w-full flex items-center justify-center gap-2">
+            <i data-lucide="radio" class="w-5 h-5"></i>
+            <span>Scan via Web NFC</span>
+          </button>
+
+          <!-- Divider -->
+          <div class="flex items-center gap-3 my-2">
+            <div class="flex-1 h-px bg-gold/20"></div>
+            <span class="text-sm text-medium">OR</span>
+            <div class="flex-1 h-px bg-gold/20"></div>
+          </div>
+
+          <!-- Manual ID Input -->
+          <div>
+            <label for="manual-id" class="section-label">Enter Item ID</label>
+            <input id="manual-id" type="text" placeholder="e.g. 8842" class="w-full p-3 rounded-lg border border-gold/20 focus:border-gold/50 focus:outline-none transition" style="background-color: var(--bg-white); color: var(--text-dark);" />
+          </div>
+
+          <!-- Submit Button -->
+          <button id="btn-go" class="btn-primary-outline w-full flex items-center justify-center gap-2">
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            <span>Open Item</span>
+          </button>
         </div>
       </div>
 
-      <p class="text-xs" style="color: var(--text-medium);">Tip: Web NFC works on supported Android devices with a secure context (https).</p>
+      <!-- Help Text -->
+      <p class="text-xs text-light text-center max-w-lg">💡 Web NFC works on supported Android devices with a secure HTTPS connection. For other devices, enter the item ID manually.</p>
     </div>
 
     <script>
@@ -89,7 +121,8 @@
         try {
           const ndef = new NDEFReader();
           await ndef.scan();
-          btnScan.innerText = 'Listening for tag…';
+          btnScan.innerHTML = '<i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i><span>Listening for tag…</span>';
+          btnScan.disabled = true;
           ndef.onreading = event => {
             try {
               const decoder = new TextDecoder();
@@ -102,12 +135,19 @@
               redirectToItem(id);
             } catch (e) {
               alert('Failed to read tag payload. Enter ID manually.');
+              btnScan.innerHTML = '<i data-lucide="radio" class="w-5 h-5"></i><span>Scan via Web NFC</span>';
+              btnScan.disabled = false;
             }
           };
         } catch (err) {
           alert('Failed to start NFC scan: ' + err.message);
+          btnScan.innerHTML = '<i data-lucide="radio" class="w-5 h-5"></i><span>Scan via Web NFC</span>';
+          btnScan.disabled = false;
         }
       });
+
+      // Initialize Lucide icons
+      lucide.createIcons();
     </script>
   </body>
 </html>
