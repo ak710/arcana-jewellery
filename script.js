@@ -443,11 +443,6 @@ async function loadAndInitModel() {
                                     }
                                 }
 
-                                // Initialize card stack after all content is populated
-                                setTimeout(() => {
-                                    initCardStack();
-                                }, 150);
-
                                 // Populate details screen elements
                                 const detailsItemLabel = document.getElementById('details-item-label');
                                 const stoneSize = document.getElementById('stone-size');
@@ -527,6 +522,12 @@ async function loadAndInitModel() {
     } else {
         // Supabase disabled or missing ITEM_ID — nothing to load.
     }
+
+    // Initialize card stack after all content is populated (outside try/catch to ensure it always runs)
+    setTimeout(() => {
+        console.log('Calling initCardStack...');
+        initCardStack();
+    }, 200);
 
     // If no item data found from Supabase, show notfound UI
     if (!ITEM_DATA && ITEM_ID) {
