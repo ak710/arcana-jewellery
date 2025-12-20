@@ -57,44 +57,40 @@
       <!-- Logo -->
       <div class="logo text-6xl mb-8" style="color: var(--text-dark);">Arcana</div>
 
-      <!-- Title & Description -->
-      <div class="text-center mb-12 max-w-lg">
-        <h1 class="serif-title text-5xl md:text-6xl font-bold text-dark leading-tight mb-4">Arcana Item Portal</h1>
-        <p class="text-lg text-medium font-light leading-relaxed">Scan your jewellery item or enter its ID to view the personalised portal.</p>
+      <!-- Title -->
+      <div class="text-center mb-16 max-w-lg">
+        <h1 class="serif-title text-5xl md:text-6xl font-normal text-dark leading-tight">Scan Your Memory</h1>
       </div>
 
-      <!-- NFC & Manual Entry Card -->
-      <div class="memory-card w-full max-w-lg mb-8">
-        <div id="nfc-area" class="space-y-4">
+      <!-- NFC & Manual Entry -->
+      <div class="w-full max-w-md mb-12">
+        <div id="nfc-area" class="space-y-6">
           <!-- Scan Button -->
-          <button id="btn-scan" class="btn-primary w-full flex items-center justify-center gap-2">
+          <button id="btn-scan" class="btn-primary w-full flex items-center justify-center gap-3">
             <i data-lucide="radio" class="w-5 h-5"></i>
-            <span>Scan via Web NFC</span>
+            <span>Scan</span>
           </button>
 
           <!-- Divider -->
-          <div class="flex items-center gap-3 my-2">
-            <div class="flex-1 h-px bg-gold/20"></div>
-            <span class="text-sm text-medium">OR</span>
-            <div class="flex-1 h-px bg-gold/20"></div>
+          <div class="flex items-center gap-4 my-8">
+            <div class="flex-1 h-px bg-gold/15"></div>
+            <span class="text-sm text-medium opacity-50">or</span>
+            <div class="flex-1 h-px bg-gold/15"></div>
           </div>
 
           <!-- Manual ID Input -->
           <div>
-            <label for="manual-id" class="section-label">Enter Item ID</label>
-            <input id="manual-id" type="text" placeholder="e.g. 8842" class="w-full p-3 rounded-lg border border-gold/20 focus:border-gold/50 focus:outline-none transition" style="background-color: var(--bg-white); color: var(--text-dark);" />
+            <input id="manual-id" type="text" placeholder="Enter item ID" class="w-full p-4 rounded-lg border border-gold/20 focus:border-gold/40 focus:outline-none transition text-center" style="background-color: var(--bg-white); color: var(--text-dark);" />
           </div>
 
           <!-- Submit Button -->
-          <button id="btn-go" class="btn-primary-outline w-full flex items-center justify-center gap-2">
+          <button id="btn-go" class="btn-primary-outline w-full flex items-center justify-center gap-3">
+            <span>Open</span>
             <i data-lucide="arrow-right" class="w-5 h-5"></i>
-            <span>Open Item</span>
           </button>
         </div>
       </div>
 
-      <!-- Help Text -->
-      <p class="text-xs text-light text-center max-w-lg">💡 Web NFC works on supported Android devices with a secure HTTPS connection. For other devices, enter the item ID manually.</p>
     </div>
 
     <script>
@@ -121,7 +117,7 @@
         try {
           const ndef = new NDEFReader();
           await ndef.scan();
-          btnScan.innerHTML = '<i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i><span>Listening for tag…</span>';
+          btnScan.innerHTML = '<i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i><span>Scanning…</span>';
           btnScan.disabled = true;
           ndef.onreading = event => {
             try {
@@ -135,13 +131,13 @@
               redirectToItem(id);
             } catch (e) {
               alert('Failed to read tag payload. Enter ID manually.');
-              btnScan.innerHTML = '<i data-lucide="radio" class="w-5 h-5"></i><span>Scan via Web NFC</span>';
+              btnScan.innerHTML = '<i data-lucide="radio" class="w-5 h-5"></i><span>Scan</span>';
               btnScan.disabled = false;
             }
           };
         } catch (err) {
           alert('Failed to start NFC scan: ' + err.message);
-          btnScan.innerHTML = '<i data-lucide="radio" class="w-5 h-5"></i><span>Scan via Web NFC</span>';
+          btnScan.innerHTML = '<i data-lucide="radio" class="w-5 h-5"></i><span>Scan</span>';
           btnScan.disabled = false;
         }
       });
