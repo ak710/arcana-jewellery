@@ -249,88 +249,64 @@
                     <span class="section-label accent" id="message-sign"></span>
                 </div>
 
-                <!-- VIDEO MEMORY: Custom video card (replaces raw embed) -->
-                <div id="video-card" class="memory-card mb-20 hidden">
-                    <div class="text-center mb-4">
-                        <span class="section-label">Video Memory</span>
-                    </div>
-                    <!-- Video thumbnail + play icon (opens in modal/fullscreen on click) -->
-                    <div id="video-thumbnail-container" class="relative aspect-video w-full bg-gradient-to-br from-gold/20 to-gray-900/20 rounded-lg overflow-hidden cursor-pointer group">
-                        <img id="video-thumbnail" src="" alt="Video thumbnail" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-300" />
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition duration-300">
-                            <div class="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition duration-300">
-                                <i data-lucide="play" class="w-8 h-8 text-gold ml-1"></i>
+                <!-- VIDEO: No labels, full-width with centered play -->
+                <div id="video-card" class="mb-32 hidden">
+                    <div id="video-thumbnail-container" class="relative aspect-video w-full rounded-2xl overflow-hidden cursor-pointer group">
+                        <img id="video-thumbnail" src="" alt="" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition duration-500" />
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition duration-500">
+                            <div class="w-20 h-20 rounded-full bg-white/95 flex items-center justify-center group-hover:scale-110 transition duration-500">
+                                <i data-lucide="play" class="w-10 h-10 text-gold ml-1"></i>
                             </div>
                         </div>
                     </div>
-                    <p class="text-center text-sm text-medium mt-4 font-light">A memory captured just for you</p>
                 </div>
 
-                <!-- LOVE NOTE: Clean, readable note (break long paragraphs) -->
-                <div class="memory-card mb-20">
-                    <span class="section-label">Love Note</span>
-                    <p id="message-body" class="text-lg md:text-xl text-dark leading-relaxed font-light text-center break-words whitespace-pre-wrap"></p>
+                <!-- LOVE NOTE: Text-only, narrow measure -->
+                <div class="mb-32">
+                    <p id="message-body" class="serif-title text-xl md:text-2xl text-dark leading-loose font-light text-center break-words whitespace-pre-wrap max-w-2xl mx-auto px-8"></p>
                 </div>
 
-                <!-- SONG MEMORY: Album art + song title + artist + Play button -->
-                <div id="song-card" class="memory-card mb-20 hidden">
-                    <span class="section-label">Favourite Song</span>
-                    <div class="text-center">
-                        <!-- Album art or placeholder -->
-                        <div id="song-art-container" class="w-32 h-32 mx-auto mb-4 rounded-lg bg-gradient-to-br from-gold/30 to-gray-200/30 flex items-center justify-center overflow-hidden">
-                            <img id="song-art" src="" alt="Album art" class="w-full h-full object-cover" />
-                        </div>
-                        <!-- Song metadata (optional, populated if available) -->
-                        <h3 id="song-title" class="serif-title text-xl text-dark mb-1">—</h3>
-                        <p id="song-artist" class="text-medium text-sm mb-6 font-light">—</p>
-                        <!-- Play on Spotify button -->
-                        <a id="song-link" class="btn-primary" target="_blank" rel="noopener noreferrer">
-                            <i data-lucide="music" class="w-4 h-4"></i>
-                            <span>Play on Spotify</span>
-                        </a>
+                <!-- SONG: Album art + title + button -->
+                <div id="song-card" class="mb-32 hidden text-center">
+                    <div id="song-art-container" class="w-48 h-48 mx-auto mb-8 rounded-2xl overflow-hidden shadow-lg">
+                        <img id="song-art" src="" alt="" class="w-full h-full object-cover" />
                     </div>
+                    <h3 id="song-title" class="serif-title text-2xl text-dark mb-8 font-normal">—</h3>
+                    <p id="song-artist" class="hidden">—</p>
+                    <a id="song-link" class="btn-primary" target="_blank" rel="noopener noreferrer">
+                        <i data-lucide="music" class="w-5 h-5"></i>
+                        <span>Listen</span>
+                    </a>
                 </div>
 
-                <!-- VOICE NOTE (if present) -->
-                <div id="voice-card" class="memory-card mb-20 hidden">
-                    <span class="section-label">Voice Message</span>
-                    <div class="text-center">
-                        <div class="flex justify-center mb-4">
-                            <i data-lucide="mic" class="w-6 h-6 text-gold"></i>
-                        </div>
-                        <audio id="voice-audio" controls preload="none" class="voice-player mx-auto mb-4"></audio>
-                        <p class="text-sm text-medium font-light">A voice note from the heart</p>
+                <!-- VOICE: Minimal audio player -->
+                <div id="voice-card" class="mb-32 hidden text-center">
+                    <audio id="voice-audio" controls preload="none" class="voice-player mx-auto"></audio>
+                </div>
+
+                <!-- PLACE: Editorial layout -->
+                <div id="location-card" class="mb-32 hidden">
+                    <h3 id="location-label" class="serif-title text-3xl md:text-4xl text-dark mb-8 text-center font-normal"></h3>
+                    <div id="location-map-preview" class="w-full aspect-video rounded-2xl overflow-hidden mb-8 shadow-lg">
+                        <img id="location-map-image" src="" alt="" class="w-full h-full object-cover" />
                     </div>
-                </div>
-
-                <!-- LOCATION MEMORY: Static map preview (not live embed) -->
-                <div id="location-card" class="memory-card mb-20 hidden">
-                    <span class="section-label">Special Place</span>
                     <div class="text-center">
-                        <h3 id="location-label" class="serif-title text-2xl text-dark mb-2"></h3>
-                        <p class="text-sm text-medium font-light mb-6">A place we'll always remember</p>
-                        <!-- Static map preview (thumbnail) -->
-                        <div id="location-map-preview" class="w-full aspect-video rounded-lg bg-gradient-to-br from-gold/10 to-blue-100/20 mb-6 overflow-hidden">
-                            <img id="location-map-image" src="" alt="Location map" class="w-full h-full object-cover" />
-                        </div>
-                        <!-- Open in Maps button -->
                         <a id="location-link" class="btn-primary-outline" target="_blank" rel="noopener noreferrer">
                             <i data-lucide="navigation" class="w-4 h-4"></i>
-                            <span>Open in Maps</span>
+                            <span>View</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- SHARE SECTION: Minimal buttons -->
-                <div class="section-spacer"></div>
-                <div class="text-center pt-12 border-t border-gold/15">
-                    <span class="section-label">Share This Memory</span>
-                    <div class="flex gap-3 justify-center max-w-md mx-auto">
+                <!-- SHARE: Minimal -->
+                <div class="mb-32"></div>
+                <div class="text-center pt-16 opacity-60">
+                    <div class="flex gap-4 justify-center max-w-xs mx-auto">
                         <button onclick="shareContent()" class="btn-primary-outline flex-1">
-                            <i data-lucide="send" class="w-4 h-4"></i> Share
+                            <i data-lucide="send" class="w-4 h-4"></i>
                         </button>
                         <button onclick="copyLink()" class="btn-primary-outline flex-1">
-                            <i data-lucide="link" class="w-4 h-4"></i> Copy Link
+                            <i data-lucide="link" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>

@@ -579,33 +579,17 @@ html.dark body {
    REUSABLE COMPONENTS — DESIGN SYSTEM
    ============================================================ */
 
-/* MEMORY CARD COMPONENT
-   - Rounded container with generous padding
-   - Soft shadow or no shadow for minimalism
-   - Consistent border-radius 16-20px
-   - Vertical spacing between sections (48-64px)
+/* MEMORY CARD COMPONENT — LUXURY KEEPSAKE
+   - No borders or backgrounds
+   - Whitespace defines boundaries
+   - Increased vertical rhythm (96px between sections)
 */
 .memory-card {
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(201, 169, 97, 0.15);
-    border-radius: var(--radius-card);
-    padding: 28px 32px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    transition: all 0.3s ease;
-}
-
-.memory-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    border-color: rgba(201, 169, 97, 0.25);
-}
-
-.dark .memory-card {
-    background: rgba(15, 15, 15, 0.85);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.dark .memory-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    transition: none;
 }
 
 /* SECTION LABEL COMPONENT
@@ -634,45 +618,45 @@ html.dark body {
    - Soft interactions without visual chaos
 */
 .btn-primary {
-    background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+    background: var(--gold);
     color: white;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 0.875rem;
-    letter-spacing: 0.05em;
-    padding: 14px 28px;
-    border-radius: var(--radius-button);
+    letter-spacing: 0.02em;
+    padding: 16px 32px;
+    border-radius: 8px;
     border: none;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(201, 169, 97, 0.2);
+    box-shadow: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     text-decoration: none;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(201, 169, 97, 0.3);
+    background: var(--gold-dim);
+    transform: none;
+    box-shadow: none;
 }
 
 .btn-primary:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(201, 169, 97, 0.2);
+    transform: scale(0.98);
 }
 
 .btn-primary-outline {
     background: transparent;
     color: var(--text-dark);
-    border: 1.5px solid var(--gold);
+    border: 1px solid rgba(201, 169, 97, 0.3);
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 0.875rem;
-    letter-spacing: 0.05em;
-    padding: 12px 24px;
-    border-radius: var(--radius-button);
+    letter-spacing: 0.02em;
+    padding: 14px 28px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: inline-flex;
@@ -683,15 +667,18 @@ html.dark body {
 }
 
 .btn-primary-outline:hover {
-    background: var(--gold);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(201, 169, 97, 0.25);
+    background: rgba(201, 169, 97, 0.05);
+    border-color: var(--gold);
+    transform: none;
+}
+
+.dark .btn-primary-outline {
+    color: var(--text-light);
+    border-color: rgba(201, 169, 97, 0.4);
 }
 
 .dark .btn-primary-outline:hover {
-    background: var(--gold);
-    color: #0F0F0F;
+    background: rgba(201, 169, 97, 0.1);
 }
 
 /* BACK ARROW — VISUALLY DE-EMPHASIZED */
