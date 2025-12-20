@@ -232,89 +232,104 @@
 
         <!-- SCREEN 3: THE MESSAGE — REVEAL PAGE (Premium, Minimal, Cohesive) -->
         <div id="screen-message" class="screen hidden-up bg-white/95 backdrop-blur-sm">
-            <div class="reveal-page-wrapper overflow-y-auto w-full h-full">
-                
-                <!-- HEADER: Back arrow (de-emphasized) + Logo -->
-                <div class="flex justify-between items-center mb-20">
-                    <button onclick="goBackToHome()" class="back-arrow">
+            <!-- CARD STACK CONTAINER -->
+            <div class="card-stack-wrapper">
+                <!-- Header: Back arrow + Logo (floating, always visible) -->
+                <div class="card-stack-header">
+                    <button onclick="goBackToHome()" class="back-arrow-floating">
                         <i data-lucide="arrow-left" class="w-5 h-5"></i>
                     </button>
-                    <div class="logo text-4xl text-dark">Arcana</div>
+                    <div class="logo text-3xl">Arcana</div>
                     <div class="w-5"></div>
                 </div>
 
-                <!-- TITLE SECTION: Large serif title + Name below in small-caps -->
-                <div class="text-center mb-20">
-                    <h1 id="message-title" class="serif-title text-5xl md:text-6xl text-dark font-bold leading-tight mb-6"></h1>
-                    <span class="section-label accent" id="message-sign"></span>
-                </div>
+                <!-- Card Stack -->
+                <div id="card-stack" class="card-stack">
+                    
+                    <!-- CARD 1: Title + Signature -->
+                    <div class="memory-card-swipe" data-card="intro">
+                        <div class="card-content-center">
+                            <h1 id="message-title" class="serif-title text-5xl md:text-6xl leading-tight mb-6 text-center"></h1>
+                            <span id="message-sign" class="text-gold text-sm uppercase tracking-widest text-center block"></span>
+                        </div>
+                    </div>
 
-                <!-- VIDEO: No labels, full-width with centered play -->
-                <div id="video-card" class="mb-32 hidden">
-                    <div id="video-thumbnail-container" class="relative aspect-video w-full rounded-2xl overflow-hidden cursor-pointer group">
-                        <img id="video-thumbnail" src="" alt="" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition duration-500" />
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition duration-500">
-                            <div class="w-20 h-20 rounded-full bg-white/95 flex items-center justify-center group-hover:scale-110 transition duration-500">
-                                <i data-lucide="play" class="w-10 h-10 text-gold ml-1"></i>
+                    <!-- CARD 2: Video (full-bleed) -->
+                    <div id="video-card" class="memory-card-swipe hidden" data-card="video">
+                        <div id="video-thumbnail-container" class="card-content-fullbleed cursor-pointer group">
+                            <img id="video-thumbnail" src="" alt="" class="w-full h-full object-cover" />
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-all duration-700">
+                                <div class="w-24 h-24 rounded-full bg-white/95 flex items-center justify-center group-hover:scale-105 transition-all duration-700">
+                                    <i data-lucide="play" class="w-12 h-12 text-gold ml-1"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- LOVE NOTE: Text-only, narrow measure -->
-                <div class="mb-32">
-                    <p id="message-body" class="serif-title text-xl md:text-2xl text-dark leading-loose font-light text-center break-words whitespace-pre-wrap max-w-2xl mx-auto px-8"></p>
-                </div>
-
-                <!-- SONG: Album art + title + button -->
-                <div id="song-card" class="mb-32 hidden text-center">
-                    <div id="song-art-container" class="w-48 h-48 mx-auto mb-8 rounded-2xl overflow-hidden shadow-lg">
-                        <img id="song-art" src="" alt="" class="w-full h-full object-cover" />
+                    <!-- CARD 3: Love Note -->
+                    <div class="memory-card-swipe" data-card="note">
+                        <div class="card-content-center">
+                            <p id="message-body" class="serif-title text-2xl md:text-3xl leading-loose font-light text-center break-words whitespace-pre-wrap max-w-xl"></p>
+                        </div>
                     </div>
-                    <h3 id="song-title" class="serif-title text-2xl text-dark mb-8 font-normal">—</h3>
-                    <p id="song-artist" class="hidden">—</p>
-                    <a id="song-link" class="btn-primary" target="_blank" rel="noopener noreferrer">
-                        <i data-lucide="music" class="w-5 h-5"></i>
-                        <span>Listen</span>
-                    </a>
-                </div>
 
-                <!-- VOICE: Minimal audio player -->
-                <div id="voice-card" class="mb-32 hidden text-center">
-                    <audio id="voice-audio" controls preload="none" class="voice-player mx-auto"></audio>
-                </div>
-
-                <!-- PLACE: Editorial layout -->
-                <div id="location-card" class="mb-32 hidden">
-                    <h3 id="location-label" class="serif-title text-3xl md:text-4xl text-dark mb-8 text-center font-normal"></h3>
-                    <div id="location-map-preview" class="w-full aspect-video rounded-2xl overflow-hidden mb-8 shadow-lg">
-                        <img id="location-map-image" src="" alt="" class="w-full h-full object-cover" />
+                    <!-- CARD 4: Song -->
+                    <div id="song-card" class="memory-card-swipe hidden" data-card="song">
+                        <div class="card-content-center">
+                            <div id="song-art-container" class="w-56 h-56 mx-auto mb-10 rounded-3xl overflow-hidden shadow-2xl">
+                                <img id="song-art" src="" alt="" class="w-full h-full object-cover" />
+                            </div>
+                            <h3 id="song-title" class="serif-title text-3xl mb-10 font-normal text-center">—</h3>
+                            <p id="song-artist" class="hidden">—</p>
+                            <a id="song-link" class="btn-primary" target="_blank" rel="noopener noreferrer">
+                                <i data-lucide="music" class="w-5 h-5"></i>
+                                <span>Listen</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="text-center">
-                        <a id="location-link" class="btn-primary-outline" target="_blank" rel="noopener noreferrer">
-                            <i data-lucide="navigation" class="w-4 h-4"></i>
-                            <span>View</span>
-                        </a>
+
+                    <!-- CARD 5: Voice -->
+                    <div id="voice-card" class="memory-card-swipe hidden" data-card="voice">
+                        <div class="card-content-center">
+                            <audio id="voice-audio" controls preload="none" class="voice-player mx-auto"></audio>
+                        </div>
                     </div>
-                </div>
 
-                <!-- SHARE: Minimal -->
-                <div class="mb-32"></div>
-                <div class="text-center pt-16 opacity-60">
-                    <div class="flex gap-4 justify-center max-w-xs mx-auto">
-                        <button onclick="shareContent()" class="btn-primary-outline flex-1">
-                            <i data-lucide="send" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="copyLink()" class="btn-primary-outline flex-1">
-                            <i data-lucide="link" class="w-4 h-4"></i>
-                        </button>
+                    <!-- CARD 6: Place -->
+                    <div id="location-card" class="memory-card-swipe hidden" data-card="place">
+                        <div class="card-content-center">
+                            <h3 id="location-label" class="serif-title text-4xl md:text-5xl mb-10 text-center font-normal"></h3>
+                            <div id="location-map-preview" class="w-full max-w-2xl aspect-video rounded-3xl overflow-hidden mb-10 shadow-2xl mx-auto">
+                                <img id="location-map-image" src="" alt="" class="w-full h-full object-cover" />
+                            </div>
+                            <div class="text-center">
+                                <a id="location-link" class="btn-primary-outline" target="_blank" rel="noopener noreferrer">
+                                    <i data-lucide="navigation" class="w-4 h-4"></i>
+                                    <span>View</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Extra spacing for mobile scroll comfort -->
-                <div class="h-12"></div>
+                    <!-- CARD 7: Share (Final) -->
+                    <div class="memory-card-swipe" data-card="share">
+                        <div class="card-content-center">
+                            <h3 class="serif-title text-3xl mb-12 text-center font-normal">Keep this memory</h3>
+                            <div class="flex flex-col gap-4 max-w-xs mx-auto">
+                                <button onclick="shareContent()" class="btn-primary w-full">
+                                    <i data-lucide="send" class="w-5 h-5"></i>
+                                    <span>Share</span>
+                                </button>
+                                <button onclick="copyLink()" class="btn-primary-outline w-full">
+                                    <i data-lucide="link" class="w-5 h-5"></i>
+                                    <span>Copy Link</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-            </div>
+                </div><!-- end card-stack -->
+            </div><!-- end card-stack-wrapper -->
         </div>
 
     </div>

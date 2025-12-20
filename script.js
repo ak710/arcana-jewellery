@@ -1007,3 +1007,196 @@ function openVideoModal(videoUrl) {
     };
     document.addEventListener('keydown', handleEscape);
 }
+/* ============================================================
+   CARD STACK INTERACTION — LUXURY SWIPE MECHANICS
+   ============================================================ */
+let currentCardIndex = 0;
+let cards = [];
+let startX = 0;
+let currentX = 0;
+let isDragging = false;
+let cardStack = null;
+
+function initCardStack() {
+    cardStack = document.getElementById('card-stack');
+    if (!cardStack) return;
+
+    // Collect all cards (excluding hidden ones)
+    cards = Array.from(cardStack.querySelectorAll('.memory-card-swipe:not(.hidden)'));
+    if (cards.length === 0) return;
+
+    // Set initial states
+    updateCardStates();
+
+    // Touch events
+    cardStack.addEventListener('touchstart', handleTouchStart, { passive: false });
+    cardStack.addEventListener('touchmove', handleTouchMove, { passive: false });
+    cardStack.addEventListener('touchend', handleTouchEnd);
+
+    // Mouse events
+    cardStack.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    // Keyboard navigation
+    document.addEventListener('keydown', handleKeyboardNav);
+
+    // Show swipe hint on first card
+    setTimeout(() => {
+        if (cards[0]) cards[0].classList.add('show-hint');
+    }, 1500);
+}
+
+function updateCardStates() {
+    cards.forEach((card, index) => {
+        card.classList.remove('active', 'next');
+        if (index === currentCardIndex) {
+            card.classList.add('active');
+        } else if (index === currentCardIndex + 1) {
+            card.classList.add('next');
+        }
+    });
+}
+
+function nextCard() {
+    if (currentCardIndex >= cards.length - 1) return;
+    
+    const currentCard = cards[currentCardIndex];
+    currentCard.classList.add('swiping-out');
+    currentCard.style.transform = 'translateX(-120%) rotate(-8deg)';
+    currentCard.style.opacity = '0';
+
+    setTimeout(() => {
+        currentCardIndex++;
+        updateCardStates();
+        currentCard.classList.remove('swiping-out');
+        currentCard.style.transform = '';
+        currentCard.style.opacity = '';
+    }, 400);
+}
+
+function prevCard() {
+    if (currentCardIndex <= 0) return;
+    
+    currentCardIndex--;
+    updateCardStates();
+}
+
+// Touch handlers
+function handleTouchStart(e) {
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    currentX = touch.clientX;
+    isDragging = true;
+}
+
+function handleTouchMove(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    currentX = touch.clientX;
+    const deltaX = currentX - startX;
+    const activeCard = cards[currentCardIndex];
+    
+    if (!activeCard) return;
+
+    // Apply drag transform with damping
+    const rotation = deltaX * 0.05;
+    const opacity = 1 - Math.abs(deltaX) * 0.001;
+    activeCard.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
+    activeCard.style.opacity = Math.max(0.3, opacity);
+}
+
+function handleTouchEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+
+    const deltaX = currentX - startX;
+    const activeCard = cards[currentCardIndex];
+    
+    if (!activeCard) return;
+
+    // Swipe threshold: 100px
+    if (Math.abs(deltaX) > 100) {
+        if (deltaX < 0) {
+            nextCard();
+        } else {
+            prevCard();
+        }
+    } else {
+        // Snap back with damped animation
+        activeCard.style.transition = 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
+        activeCard.style.transform = '';
+        activeCard.style.opacity = '';
+        setTimeout(() => {
+            activeCard.style.transition = '';
+        }, 400);
+    }
+}
+
+// Mouse handlers
+function handleMouseDown(e) {
+    if (e.target.closest('button, a, input, audio')) return;
+    startX = e.clientX;
+    currentX = e.clientX;
+    isDragging = true;
+}
+
+function handleMouseMove(e) {
+    if (!isDragging) return;
+    
+    currentX = e.clientX;
+    const deltaX = currentX - startX;
+    const activeCard = cards[currentCardIndex];
+    
+    if (!activeCard) return;
+
+    const rotation = deltaX * 0.05;
+    const opacity = 1 - Math.abs(deltaX) * 0.001;
+    activeCard.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
+    activeCard.style.opacity = Math.max(0.3, opacity);
+}
+
+function handleMouseUp() {
+    if (!isDragging) return;
+    isDragging = false;
+
+    const deltaX = currentX - startX;
+    const activeCard = cards[currentCardIndex];
+    
+    if (!activeCard) return;
+
+    if (Math.abs(deltaX) > 100) {
+        if (deltaX < 0) {
+            nextCard();
+        } else {
+            prevCard();
+        }
+    } else {
+        activeCard.style.transition = 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
+        activeCard.style.transform = '';
+        activeCard.style.opacity = '';
+        setTimeout(() => {
+            activeCard.style.transition = '';
+        }, 400);
+    }
+}
+
+// Keyboard navigation
+function handleKeyboardNav(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        nextCard();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        prevCard();
+    }
+}
+
+// Initialize card stack after page load
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(initCardStack, 100);
+} else {
+    window.addEventListener('DOMContentLoaded', () => setTimeout(initCardStack, 100));
+}
