@@ -306,60 +306,89 @@ async function loadAndInitModel() {
                                     }
                                 }
 
-                                // REFACTORED: LOCATION MEMORY — Static map preview (not live embed)
+                                // REFACTORED: LOCATION MEMORY — Static map preview with Google Maps URL support
                                 if (locationCard && locationLabel && locationLink) {
-                                    let locHref = locationUrl || (locationLat && locationLng ? `https://maps.google.com/?q=${locationLat},${locationLng}` : null);
+                                    let locHref = locationUrl || (locationLat && locationLng ? `https://www.google.com/maps?q=${locationLat},${locationLng}` : null);
                                     let label = locationLabelVal || (locationLat && locationLng ? `${locationLat}, ${locationLng}` : null);
                                     let finalLat = locationLat;
                                     let finalLng = locationLng;
+                                    const previewEl = document.getElementById('location-map-preview');
+                                    const locationMapImage = document.getElementById('location-map-image');
 
-                                    // If we have a Google Maps URL but no coordinates, extract the location query
-                                    if (locationUrl && !locationLat && !locationLng) {
+                                    const renderIframe = (embedUrl) => {
+                                        if (!previewEl) return;
+                                        // Replace image with iframe embed gracefully
+                                        previewEl.innerHTML = '';
+                                        const iframe = document.createElement('iframe');
+                                        iframe.src = embedUrl;
+                                        iframe.title = 'Location map';
+                                        iframe.style.width = '100%';
+                                        iframe.style.height = '100%';
+                                        iframe.style.border = '0';
+                                        iframe.setAttribute('loading', 'lazy');
+                                        iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+                                        previewEl.appendChild(iframe);
+                                    };
+
+                                    // If we have a Google Maps URL, extract query and prefer an iframe fallback
+                                    let isGoogleMapsUrl = false;
+                                    let queryFromUrl = null;
+                                    if (locationUrl) {
                                         try {
-                                            const url = new URL(locationUrl);
-                                            const query = url.searchParams.get('q');
-                                            if (query) {
-                                                label = locationLabelVal || decodeURIComponent(query.replace(/\+/g, ' '));
-                                                locHref = locationUrl;
-                                                
-                                                // Geocode the location using Nominatim (OpenStreetMap's free geocoding service)
-                                                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`)
-                                                    .then(res => res.json())
-                                                    .then(data => {
-                                                        if (data && data.length > 0) {
-                                                            finalLat = parseFloat(data[0].lat);
-                                                            finalLng = parseFloat(data[0].lon);
-                                                            
-                                                            // Generate map after geocoding
-                                                            const locationMapImage = document.getElementById('location-map-image');
-                                                            if (locationMapImage && finalLat && finalLng) {
-                                                                const mapWidth = 800;
-                                                                const mapHeight = 450;
-                                                                const zoom = 15;
-                                                                const mapImageUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${finalLat},${finalLng}&zoom=${zoom}&size=${mapWidth}x${mapHeight}&markers=${finalLat},${finalLng},ol-marker`;
-                                                                
-                                                                locationMapImage.src = mapImageUrl;
-                                                                locationMapImage.alt = `Map: ${label}`;
-                                                                locationMapImage.style.background = `#f3f4f6`;
-                                                                
-                                                                locationMapImage.onerror = () => {
-                                                                    console.warn('Failed to load map image, using fallback');
-                                                                    locationMapImage.style.background = `linear-gradient(135deg, rgba(201, 169, 97, 0.1), rgba(100, 149, 237, 0.08))`;
-                                                                    locationMapImage.style.display = 'flex';
-                                                                    locationMapImage.style.alignItems = 'center';
-                                                                    locationMapImage.style.justifyContent = 'center';
-                                                                    locationMapImage.innerHTML = `<span style="color: var(--text-medium); font-size: 14px;">📍 ${label}</span>`;
-                                                                };
-                                                            }
-                                                        }
-                                                    })
-                                                    .catch(err => {
-                                                        console.warn('Geocoding failed:', err);
-                                                    });
+                                            const urlObj = new URL(locationUrl);
+                                            isGoogleMapsUrl = /google\.com\/maps/.test(urlObj.hostname + urlObj.pathname);
+                                            if (isGoogleMapsUrl) {
+                                                const q = urlObj.searchParams.get('q');
+                                                if (q) {
+                                                    queryFromUrl = q;
+                                                    const decodedQ = decodeURIComponent(q.replace(/\+/g, ' '));
+                                                    label = label || decodedQ;
+                                                    // For the external link button, use the non-embed URL for a better UX
+                                                    locHref = `https://www.google.com/maps?q=${encodeURIComponent(decodedQ)}`;
+                                                }
                                             }
                                         } catch (e) {
                                             console.warn('Failed to parse location URL:', e);
                                         }
+                                    }
+
+                                    // Try geocoding the query to render a static map image when coordinates are not available
+                                    if (!finalLat && !finalLng && queryFromUrl) {
+                                        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryFromUrl)}&format=json&limit=1`)
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                if (data && data.length > 0) {
+                                                    finalLat = parseFloat(data[0].lat);
+                                                    finalLng = parseFloat(data[0].lon);
+                                                    // Render static image with geocoded coordinates
+                                                    if (locationMapImage && finalLat && finalLng) {
+                                                        const mapWidth = 800;
+                                                        const mapHeight = 450;
+                                                        const zoom = 15;
+                                                        const mapImageUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${finalLat},${finalLng}&zoom=${zoom}&size=${mapWidth}x${mapHeight}&markers=${finalLat},${finalLng},ol-marker`;
+                                                        locationMapImage.src = mapImageUrl;
+                                                        locationMapImage.alt = `Map: ${label}`;
+                                                        locationMapImage.style.background = `#f3f4f6`;
+                                                        // If image fails to load, fallback to iframe embed
+                                                        locationMapImage.onerror = () => {
+                                                            console.warn('Map image failed, falling back to Google Maps iframe');
+                                                            const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
+                                                            renderIframe(embedUrl);
+                                                        };
+                                                    }
+                                                } else if (isGoogleMapsUrl) {
+                                                    // If geocoding yields no results, show the Google Maps iframe directly
+                                                    const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
+                                                    renderIframe(embedUrl);
+                                                }
+                                            })
+                                            .catch(err => {
+                                                console.warn('Geocoding failed:', err);
+                                                if (isGoogleMapsUrl && queryFromUrl) {
+                                                    const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
+                                                    renderIframe(embedUrl);
+                                                }
+                                            });
                                     }
 
                                     if (locHref && label) {
@@ -367,27 +396,28 @@ async function loadAndInitModel() {
                                         locationLink.href = locHref;
                                         locationCard.classList.remove('hidden');
 
-                                        // Generate static map image if we have coordinates
-                                        const locationMapImage = document.getElementById('location-map-image');
+                                        // If we already have coordinates, render the static map image immediately
                                         if (locationMapImage && finalLat && finalLng) {
                                             const mapWidth = 800;
                                             const mapHeight = 450;
                                             const zoom = 15;
                                             const mapImageUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${finalLat},${finalLng}&zoom=${zoom}&size=${mapWidth}x${mapHeight}&markers=${finalLat},${finalLng},ol-marker`;
-                                            
                                             locationMapImage.src = mapImageUrl;
                                             locationMapImage.alt = `Map: ${label}`;
                                             locationMapImage.style.background = `#f3f4f6`; // Light gray fallback
-                                            
-                                            // Handle image load error gracefully
                                             locationMapImage.onerror = () => {
-                                                console.warn('Failed to load map image, using fallback');
-                                                locationMapImage.style.background = `linear-gradient(135deg, rgba(201, 169, 97, 0.1), rgba(100, 149, 237, 0.08))`;
-                                                locationMapImage.style.display = 'flex';
-                                                locationMapImage.style.alignItems = 'center';
-                                                locationMapImage.style.justifyContent = 'center';
-                                                locationMapImage.innerHTML = `<span style="color: var(--text-medium); font-size: 14px;">📍 ${label}</span>`;
+                                                console.warn('Map image failed, falling back to Google Maps iframe');
+                                                if (isGoogleMapsUrl && (queryFromUrl || locationUrl)) {
+                                                    const embedUrl = locationUrl && locationUrl.includes('output=embed')
+                                                        ? locationUrl
+                                                        : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl || label)}&output=embed`;
+                                                    renderIframe(embedUrl);
+                                                }
                                             };
+                                        } else if (isGoogleMapsUrl && queryFromUrl) {
+                                            // If we still lack coords after async geocode kick-off, render iframe quickly for UX
+                                            const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
+                                            renderIframe(embedUrl);
                                         }
                                     } else {
                                         locationCard.classList.add('hidden');
