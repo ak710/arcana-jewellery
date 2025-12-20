@@ -5,9 +5,9 @@
 //   from a Supabase `items` REST endpoint when `USE_SUPABASE` is enabled.
 // Configuration below controls model loading and Supabase lookups.
 const ENABLE_CUSTOM_MODEL = true;
-// The `ITEM_ID` is still read from the URL (device.html?item=1234).
+// The `ITEM_ID` is read from the URL (device.html?item=1234 or ?id=1234).
 const urlParamsForModel = new URLSearchParams(window.location.search);
-const ITEM_ID = urlParamsForModel.get('item');
+const ITEM_ID = urlParamsForModel.get('item') || urlParamsForModel.get('id');
 // Do not assume any local or hardcoded model file — model URL comes from Supabase.
 let CUSTOM_MODEL_URL = '';
 
@@ -116,6 +116,15 @@ async function fetchIframeUrl(modelUrl) {
 }
 
 
+// --- CARD STACK STATE ---
+let cards = [];
+let currentCardIndex = 0;
+let cardStack = null;
+let isInitialized = false;
+let isDragging = false;
+let startX = 0;
+let currentX = 0;
+
 async function loadAndInitModel() {
     // Only use Supabase as the source of truth for item metadata.
     if (USE_SUPABASE && ITEM_ID && SUPABASE_URL && SUPABASE_ANON_KEY) {
@@ -200,6 +209,7 @@ async function loadAndInitModel() {
                                     
                                     if (videoCard) {
                                         videoCard.classList.remove('hidden');
+                                        console.log('✓ Video card shown');
                                         
                                         // Extract YouTube video ID for thumbnail
                                         let videoId = null;
@@ -228,7 +238,10 @@ async function loadAndInitModel() {
                                     }
                                 } else {
                                     const videoCard = document.getElementById('video-card');
-                                    if (videoCard) videoCard.classList.add('hidden');
+                                    if (videoCard) {
+                                        videoCard.classList.add('hidden');
+                                        console.log('✗ Video card hidden (no video data)');
+                                    }
                                 }
 
                                 if (msgBody && message) msgBody.innerText = message;
@@ -239,8 +252,10 @@ async function loadAndInitModel() {
                                     if (voice) {
                                         voiceAudio.src = voice;
                                         voiceCard.classList.remove('hidden');
+                                        console.log('✓ Voice card shown');
                                     } else {
                                         voiceCard.classList.add('hidden');
+                                        console.log('✗ Voice card hidden (no voice data)');
                                     }
                                 }
 
@@ -301,8 +316,10 @@ async function loadAndInitModel() {
                                         // Set link immediately (metadata will populate async)
                                         if (songLink) songLink.href = spotifyUrl;
                                         songCard.classList.remove('hidden');
+                                        console.log('✓ Song card shown');
                                     } else {
                                         songCard.classList.add('hidden');
+                                        console.log('✗ Song card hidden (no song data)');
                                     }
                                 }
 
@@ -395,6 +412,7 @@ async function loadAndInitModel() {
                                         locationLabel.innerText = label;
                                         locationLink.href = locHref;
                                         locationCard.classList.remove('hidden');
+                                        console.log('✓ Location card shown');
 
                                         // If we already have coordinates, render the static map image immediately
                                         if (locationMapImage && finalLat && finalLng) {
@@ -421,8 +439,14 @@ async function loadAndInitModel() {
                                         }
                                     } else {
                                         locationCard.classList.add('hidden');
+                                        console.log('✗ Location card hidden (no location data)');
                                     }
                                 }
+
+                                // Initialize card stack after all content is populated
+                                setTimeout(() => {
+                                    initCardStack();
+                                }, 150);
 
                                 // Populate details screen elements
                                 const detailsItemLabel = document.getElementById('details-item-label');
@@ -1007,38 +1031,65 @@ function openVideoModal(videoUrl) {
     };
     document.addEventListener('keydown', handleEscape);
 }
-/* ============================================================
-   CARD STACK INTERACTION — LUXURY SWIPE MECHANICS
-   ============================================================ */
-let currentCardIndex = 0;
-let cards = [];
-let startX = 0;
-let currentX = 0;
-let isDragging = false;
-let cardStack = null;
+
+// Card stack will be initialized after data loads - see songCard population
+
 
 function initCardStack() {
+    if (isInitialized) return;
+    
     cardStack = document.getElementById('card-stack');
-    if (!cardStack) return;
+    if (!cardStack) {
+        console.warn('card-stack element not found');
+        return;
+    }
 
-    // Collect all cards (excluding hidden ones)
-    cards = Array.from(cardStack.querySelectorAll('.memory-card-swipe:not(.hidden)'));
-    if (cards.length === 0) return;
+    // Collect all visible cards (not display:none)
+    const allCards = Array.from(cardStack.querySelectorAll('.memory-card-swipe'));
+    console.log('Total cards found in DOM:', allCards.length);
+    console.log('Card details:', allCards.map((c, i) => ({
+        index: i,
+        dataCard: c.getAttribute('data-card'),
+        id: c.id,
+        hasHiddenClass: c.classList.contains('hidden'),
+        displayStyle: window.getComputedStyle(c).display,
+        isVisible: window.getComputedStyle(c).display !== 'none' && !c.classList.contains('hidden')
+    })));
+    
+    cards = allCards.filter(card => {
+        const style = window.getComputedStyle(card);
+        return style.display !== 'none' && !card.classList.contains('hidden');
+    });
+    
+    if (cards.length === 0) {
+        console.warn('No visible cards found after filtering');
+        return;
+    }
+
+    console.log('Initializing card stack with', cards.length, 'visible cards');
+    isInitialized = true;
+
+    // Reset all card styles
+    cards.forEach(card => {
+        card.style.transform = '';
+        card.style.opacity = '';
+        card.style.transition = '';
+    });
 
     // Set initial states
     updateCardStates();
 
-    // Touch events
-    cardStack.addEventListener('touchstart', handleTouchStart, { passive: false });
-    cardStack.addEventListener('touchmove', handleTouchMove, { passive: false });
-    cardStack.addEventListener('touchend', handleTouchEnd);
+    // Attach touch and mouse events to all cards (only active card will respond)
+    cards.forEach(card => {
+        card.addEventListener('touchstart', handleTouchStart, { passive: false });
+        card.addEventListener('touchmove', handleTouchMove, { passive: false });
+        card.addEventListener('touchend', handleTouchEnd);
+        card.addEventListener('mousedown', handleMouseDown);
+    });
 
-    // Mouse events
-    cardStack.addEventListener('mousedown', handleMouseDown);
+    // Global mouse and keyboard handlers
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-
-    // Keyboard navigation
     document.addEventListener('keydown', handleKeyboardNav);
 
     // Show swipe hint on first card
@@ -1049,34 +1100,60 @@ function initCardStack() {
 
 function updateCardStates() {
     cards.forEach((card, index) => {
-        card.classList.remove('active', 'next');
+        card.classList.remove('active', 'next', 'swiping-out');
+        card.style.transition = 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+        
         if (index === currentCardIndex) {
             card.classList.add('active');
+            card.style.zIndex = 10;
+            card.style.transform = 'translateY(0) scale(1)';
+            card.style.opacity = '1';
         } else if (index === currentCardIndex + 1) {
             card.classList.add('next');
+            card.style.zIndex = 9;
+            card.style.transform = 'translateY(20px) scale(0.95)';
+            card.style.opacity = '0.7';
+        } else if (index > currentCardIndex) {
+            card.style.zIndex = 8 - (index - currentCardIndex);
+            card.style.transform = `translateY(${40 + (index - currentCardIndex - 1) * 20}px) scale(${0.9 - (index - currentCardIndex - 1) * 0.05})`;
+            card.style.opacity = Math.max(0, 0.4 - (index - currentCardIndex - 1) * 0.2);
+        } else {
+            card.style.zIndex = 1;
+            card.style.transform = 'translateY(-100px) scale(0.8)';
+            card.style.opacity = '0';
         }
     });
+    
+    // Re-attach event listeners to new active card
+    setTimeout(() => {
+        const activeCard = cards[currentCardIndex];
+        if (activeCard) {
+            activeCard.style.transition = '';
+        }
+    }, 600);
 }
 
 function nextCard() {
     if (currentCardIndex >= cards.length - 1) return;
     
     const currentCard = cards[currentCardIndex];
+    currentCard.style.transition = 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
     currentCard.classList.add('swiping-out');
     currentCard.style.transform = 'translateX(-120%) rotate(-8deg)';
     currentCard.style.opacity = '0';
 
     setTimeout(() => {
         currentCardIndex++;
+        currentCard.style.transition = '';
         updateCardStates();
-        currentCard.classList.remove('swiping-out');
-        currentCard.style.transform = '';
-        currentCard.style.opacity = '';
     }, 400);
 }
 
 function prevCard() {
     if (currentCardIndex <= 0) return;
+    
+    const currentCard = cards[currentCardIndex];
+    currentCard.style.transition = 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
     
     currentCardIndex--;
     updateCardStates();
@@ -1084,6 +1161,9 @@ function prevCard() {
 
 // Touch handlers
 function handleTouchStart(e) {
+    // Only respond if this is the active card
+    if (!e.currentTarget.classList.contains('active')) return;
+    
     const touch = e.touches[0];
     startX = touch.clientX;
     currentX = touch.clientX;
@@ -1137,7 +1217,10 @@ function handleTouchEnd() {
 
 // Mouse handlers
 function handleMouseDown(e) {
+    // Only respond if this is the active card
+    if (!e.currentTarget.classList.contains('active')) return;
     if (e.target.closest('button, a, input, audio')) return;
+    
     startX = e.clientX;
     currentX = e.clientX;
     isDragging = true;
@@ -1194,9 +1277,4 @@ function handleKeyboardNav(e) {
     }
 }
 
-// Initialize card stack after page load
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(initCardStack, 100);
-} else {
-    window.addEventListener('DOMContentLoaded', () => setTimeout(initCardStack, 100));
-}
+// Card stack is initialized after data loads - see line ~428
