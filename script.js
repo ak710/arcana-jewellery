@@ -362,11 +362,13 @@ async function loadAndInitModel() {
 
                                     // If we have a Google Maps URL, extract query and prefer an iframe fallback
                                     let isGoogleMapsUrl = false;
+                                    let isShortUrl = false;
                                     let queryFromUrl = null;
                                     if (locationUrl) {
                                         try {
                                             const urlObj = new URL(locationUrl);
                                             isGoogleMapsUrl = /google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com/.test(urlObj.hostname + urlObj.pathname);
+                                            isShortUrl = /maps\.app\.goo\.gl/.test(urlObj.hostname);
                                             if (isGoogleMapsUrl) {
                                                 const q = urlObj.searchParams.get('q');
                                                 if (q) {
@@ -383,9 +385,9 @@ async function loadAndInitModel() {
                                     }
 
                                     // Try geocoding the query to render a static map image when coordinates are not available
-                                    // BUT: if we have a Google Maps URL (including short links), skip static map and use embedded iframe directly
-                                    if (!finalLat && !finalLng && queryFromUrl && !isGoogleMapsUrl) {
-                                        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryFromUrl)}&format=json&limit=1`)
+                                    // For short URLs (maps.app.goo.gl), we'll use static map with geocoding instead of trying to embed
+                                    if (!finalLat && !finalLng && (queryFromUrl || (isShortUrl && label)) && !isGoogleMapsUrl) {
+                                        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryFromUrl || label)}&format=json&limit=1`)
                                             .then(res => res.json())
                                             .then(data => {
                                                 if (data && data.length > 0) {
@@ -403,27 +405,47 @@ async function loadAndInitModel() {
                                                         // If image fails to load, fallback to iframe embed
                                                         locationMapImage.onerror = () => {
                                                             console.warn('Map image failed, falling back to Google Maps iframe');
-                                                            const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
+                                                            const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl || label)}&output=embed`;
                                                             renderIframe(embedUrl);
                                                         };
                                                     }
-                                                } else if (isGoogleMapsUrl) {
-                                                    // If geocoding yields no results, show the Google Maps iframe directly
+                                                } else if (isGoogleMapsUrl && !isShortUrl) {
+                                                    // If geocoding yields no results for full URLs, show the Google Maps iframe directly
                                                     const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
                                                     renderIframe(embedUrl);
                                                 }
                                             })
                                             .catch(err => {
                                                 console.warn('Geocoding failed:', err);
-                                                if (isGoogleMapsUrl && queryFromUrl) {
+                                                if (isGoogleMapsUrl && !isShortUrl && queryFromUrl) {
                                                     const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
                                                     renderIframe(embedUrl);
                                                 }
                                             });
-                                    } else if (isGoogleMapsUrl && locationUrl && !finalLat) {
-                                        // Google Maps URL without coordinates: use embedded iframe immediately
+                                    } else if (isGoogleMapsUrl && !isShortUrl && locationUrl && !finalLat) {
+                                        // Full Google Maps URLs without coordinates: use embedded iframe
                                         const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `${locationUrl}${locationUrl.includes('?') ? '&' : '?'}output=embed`;
                                         renderIframe(embedUrl);
+                                    } else if (isShortUrl && !finalLat && label) {
+                                        // Short URLs: geocode the label to show a static map preview instead of trying to iframe
+                                        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(label)}&format=json&limit=1`)
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                if (data && data.length > 0) {
+                                                    finalLat = parseFloat(data[0].lat);
+                                                    finalLng = parseFloat(data[0].lon);
+                                                    if (locationMapImage && finalLat && finalLng) {
+                                                        const mapWidth = 800;
+                                                        const mapHeight = 450;
+                                                        const zoom = 15;
+                                                        const mapImageUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${finalLat},${finalLng}&zoom=${zoom}&size=${mapWidth}x${mapHeight}&markers=${finalLat},${finalLng},ol-marker`;
+                                                        locationMapImage.src = mapImageUrl;
+                                                        locationMapImage.alt = `Map: ${label}`;
+                                                        locationMapImage.style.background = `#f3f4f6`;
+                                                    }
+                                                }
+                                            })
+                                            .catch(err => console.warn('Short URL geocoding failed:', err));
                                     }
 
                                     if (locHref && label) {
@@ -443,15 +465,15 @@ async function loadAndInitModel() {
                                             locationMapImage.style.background = `#f3f4f6`; // Light gray fallback
                                             locationMapImage.onerror = () => {
                                                 console.warn('Map image failed, falling back to Google Maps iframe');
-                                                if (isGoogleMapsUrl && (queryFromUrl || locationUrl)) {
+                                                if (isGoogleMapsUrl && !isShortUrl && (queryFromUrl || locationUrl)) {
                                                     const embedUrl = locationUrl && locationUrl.includes('output=embed')
                                                         ? locationUrl
                                                         : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl || label)}&output=embed`;
                                                     renderIframe(embedUrl);
                                                 }
                                             };
-                                        } else if (isGoogleMapsUrl && (queryFromUrl || locationUrl)) {
-                                            // Google Maps URL: render embedded iframe directly
+                                        } else if (isGoogleMapsUrl && !isShortUrl && (queryFromUrl || locationUrl)) {
+                                            // Full Google Maps URLs: render embedded iframe directly
                                             const embedUrl = locationUrl && locationUrl.includes('output=embed')
                                                 ? locationUrl
                                                 : `${locationUrl}${locationUrl && locationUrl.includes('?') ? '&' : '?'}output=embed`;
