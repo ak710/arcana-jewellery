@@ -596,7 +596,7 @@ select:focus {
 .card-stack-wrapper {
     position: fixed;
     inset: 0;
-    background: #0F0F0F;
+    background: var(--bg-white);
     overflow: hidden;
 }
 
@@ -649,14 +649,14 @@ select:focus {
     max-width: 450px;
     height: 90vh;
     max-height: 900px;
-    background: #1A1A1A;
+    background: #FFFFFF;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
     overflow: hidden;
     transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     cursor: grab;
     user-select: none;
-    color: #FAF9F6;
+    color: var(--text-dark);
 }
 
 .memory-card-swipe:active {
