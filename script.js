@@ -367,6 +367,7 @@ async function loadAndInitModel() {
                                         const srcMatch = locationUrl.match(/src=["']([^"']+)["']/);
                                         if (srcMatch && srcMatch[1]) {
                                             processedLocationUrl = srcMatch[1];
+                                            locHref = processedLocationUrl; // Use the extracted URL for the link
                                             console.log('✓ Extracted embed URL from iframe code');
                                         }
                                     }
@@ -390,6 +391,12 @@ async function loadAndInitModel() {
                                                     label = label || decodedQ;
                                                     // For the external link button, use the non-embed URL for a better UX
                                                     locHref = `https://www.google.com/maps?q=${encodeURIComponent(decodedQ)}`;
+                                                }
+                                            } else if (isEmbedUrl) {
+                                                // For embed URLs (with pb parameter), set link to open a google maps search by label
+                                                // Extract location name from label if available
+                                                if (label) {
+                                                    locHref = `https://www.google.com/maps/search/${encodeURIComponent(label)}`;
                                                 }
                                             }
                                         } catch (e) {
@@ -479,22 +486,22 @@ async function loadAndInitModel() {
                                             locationMapImage.style.background = `#f3f4f6`; // Light gray fallback
                                             locationMapImage.onerror = () => {
                                                 console.warn('Map image failed, falling back to Google Maps iframe');
-                                                if (isGoogleMapsUrl && !isShortUrl && (queryFromUrl || locationUrl)) {
-                                                    const embedUrl = locationUrl && locationUrl.includes('output=embed')
-                                                        ? locationUrl
+                                                if (isGoogleMapsUrl && !isShortUrl && (queryFromUrl || processedLocationUrl)) {
+                                                    const embedUrl = processedLocationUrl && processedLocationUrl.includes('output=embed')
+                                                        ? processedLocationUrl
                                                         : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl || label)}&output=embed`;
                                                     renderIframe(embedUrl);
                                                 }
                                             };
-                                        } else if (isGoogleMapsUrl && !isShortUrl && (queryFromUrl || locationUrl)) {
+                                        } else if (isGoogleMapsUrl && !isShortUrl && (queryFromUrl || processedLocationUrl)) {
                                             // Full Google Maps URLs: render embedded iframe directly
-                                            const embedUrl = locationUrl && locationUrl.includes('output=embed')
-                                                ? locationUrl
-                                                : `${locationUrl}${locationUrl && locationUrl.includes('?') ? '&' : '?'}output=embed`;
+                                            const embedUrl = processedLocationUrl && processedLocationUrl.includes('output=embed')
+                                                ? processedLocationUrl
+                                                : `${processedLocationUrl}${processedLocationUrl && processedLocationUrl.includes('?') ? '&' : '?'}output=embed`;
                                             renderIframe(embedUrl);
                                         } else if (!isGoogleMapsUrl && queryFromUrl) {
                                             // If we still lack coords after async geocode kick-off, render iframe quickly for UX
-                                            const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
+                                            const embedUrl = processedLocationUrl.includes('output=embed') ? processedLocationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
                                             renderIframe(embedUrl);
                                         }
                                     } else {
