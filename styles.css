@@ -770,10 +770,10 @@ html.dark body {
 
 .memory-card-swipe {
     position: absolute;
-    width: 90%;
-    max-width: 600px;
-    height: 80vh;
-    max-height: 800px;
+    width: 85%;
+    max-width: 450px;
+    height: 90vh;
+    max-height: 900px;
     background: #1A1A1A;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -828,11 +828,28 @@ html.dark body {
     height: 100%;
 }
 
+.card-intro-image {
+    width: 100%;
+    height: 40%;
+    object-fit: cover;
+    display: block;
+}
+
+.card-intro-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60%;
+    padding: 32px 24px;
+    text-align: center;
+}
+
 /* Mobile optimization */
 @media (max-width: 768px) {
     .memory-card-swipe {
-        width: 92%;
-        height: 75vh;
+        width: 90%;
+        height: 88vh;
         border-radius: 20px;
     }
     

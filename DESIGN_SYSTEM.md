@@ -84,6 +84,51 @@ Button: 0.875rem, 600, letter-spacing /* "Play on Spotify", "Open in Maps" */
 </div>
 ```
 
+### Reveal Page - Title Card (First Card)
+```html
+<div class="memory-card-swipe" data-card="intro">
+    <img id="message-image" src="" alt="" class="card-intro-image" />
+    <div class="card-intro-content">
+        <h1 id="message-title" class="serif-title text-4xl md:text-5xl leading-tight mb-4 text-center">
+            <!-- Dynamic title from ITEM_DATA.title -->
+        </h1>
+        <span id="message-from" class="text-gold text-xs italic font-light text-center block mb-2">
+            <!-- Author: "With love: [sender name]" -->
+        </span>
+        <span id="message-sign" class="text-gold text-xs uppercase tracking-widest text-center block">
+            <!-- Signature or fallback sender name -->
+        </span>
+    </div>
+</div>
+```
+**Data mapping:**
+- Image: `ITEM_DATA.image_url` or `ITEM_DATA.image` → top 40% of card
+- Title: `ITEM_DATA.title` or `ITEM_DATA.heading` → bottom 60%
+- With Love: `ITEM_DATA.sender` → displays as "With love: [name]"
+- Signature: `ITEM_DATA.signature` → custom signature (optional)
+
+### Reveal Page - Message Card (Second Card - Merged Video + Message)
+```html
+<div class="memory-card-swipe" data-card="message">
+    <div id="video-card" class="hidden">
+        <div id="video-thumbnail-container" class="w-full h-1/2 cursor-pointer group relative overflow-hidden">
+            <img id="video-thumbnail" src="" alt="" class="w-full h-full object-cover" />
+            <!-- Play button overlay (shown on hover) -->
+        </div>
+    </div>
+    <div class="flex flex-col h-full overflow-auto">
+        <p id="message-body" class="serif-title text-xl md:text-2xl leading-relaxed font-light text-center break-words whitespace-pre-wrap px-6 py-8">
+            <!-- Dynamic message text -->
+        </p>
+    </div>
+</div>
+```
+**Features:**
+- Video thumbnail occupies top 50% (hidden if no video)
+- Message text occupies remaining space (scrollable if needed)
+- Video clickable to open modal
+- Responsive typography for mobile
+
 ### Section with Spacing
 ```html
 <div class="section-spacer"></div>               <!-- 56px vertical break -->
@@ -243,6 +288,97 @@ opacity: 0.7;
 
 /* Avoid repaints: don't animate width, height, left, etc. */
 /* DON'T: animation: slide { left: 0 → 100px; } */
+```
+
+---
+
+## Screen & Page Styling
+
+### Card Stack - Portrait Orientation
+```css
+/* Card dimensions: portrait (narrow width, tall height) */
+.memory-card-swipe {
+    width: 85%;
+    max-width: 450px;
+    height: 90vh;
+    max-height: 900px;
+    background: #1A1A1A;
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .memory-card-swipe {
+        width: 90%;
+        height: 88vh;
+    }
+}
+```
+```css
+/* Screen container - handles transitions */
+.screen {
+    display: none;                   /* Hidden by default */
+}
+
+.screen.active {
+    display: flex;                   /* Visible & active */
+}
+
+.hidden-up {
+    display: none;                   /* Initially hidden, revealed via JS */
+}
+```
+
+### Screen Background Styling
+```html
+<!-- Connecting Screen (NFC Handshake) -->
+<div id="screen-connect" class="screen active bg-gradient-to-b from-white to-cream dark:from-[#0F0F0F] dark:to-[#1A1A1A]">
+
+<!-- Welcome Screen -->
+<div id="screen-welcome" class="screen hidden-up bg-gradient-to-b from-white to-cream dark:from-[#0F0F0F] dark:to-[#1A1A1A]">
+
+<!-- Details Screen (3D Model Viewer) -->
+<div id="screen-details" class="screen hidden-up bg-white/95 backdrop-blur-sm dark:bg-[#1A1A1A]/95">
+
+<!-- Message/Reveal Screen (Premium Content) -->
+<div id="screen-message" class="screen hidden-up bg-white/95 backdrop-blur-sm dark:bg-[#1A1A1A]/95">
+
+<!-- Not Found Screen (Error State) -->
+<div id="screen-notfound" class="screen hidden-up bg-gradient-to-b from-white to-cream dark:from-[#0F0F0F] dark:to-[#1A1A1A]">
+```
+
+### Screen-Specific Classes
+```css
+/* All screens use consistent spacing wrapper */
+.reveal-page-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 24px;              /* Desktop */
+}
+
+@media (max-width: 768px) {
+    .reveal-page-wrapper {
+        padding: 40px 16px;          /* Mobile */
+    }
+}
+
+/* 3D Model Viewer Container */
+#model-viewer {
+    width: 100%;
+    height: 600px;                   /* Responsive height */
+    border-radius: var(--radius-card);
+}
+
+/* NFC Status & Loading States */
+.nfc-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: var(--radius-button);
+    background: rgba(201, 169, 97, 0.1);
+    border: 1px solid var(--gold)/20;
+}
 ```
 
 ---

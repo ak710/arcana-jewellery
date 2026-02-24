@@ -246,40 +246,40 @@
                 <!-- Card Stack -->
                 <div id="card-stack" class="card-stack">
                     
-                    <!-- CARD 1: Title + Signature -->
+                    <!-- CARD 1: Title + Image + With Love + Signature -->
                     <div class="memory-card-swipe" data-card="intro">
-                        <div class="card-content-center">
-                            <h1 id="message-title" class="serif-title text-5xl md:text-6xl leading-tight mb-6 text-center"></h1>
-                            <span id="message-sign" class="text-gold text-sm uppercase tracking-widest text-center block"></span>
+                        <img id="message-image" src="" alt="" class="card-intro-image" />
+                        <div class="card-intro-content">
+                            <h1 id="message-title" class="serif-title text-4xl md:text-5xl leading-tight mb-4 text-center"></h1>
+                            <span id="message-from" class="text-gold text-xs italic font-light text-center block mb-2"></span>
+                            <span id="message-sign" class="text-gold text-xs uppercase tracking-widest text-center block"></span>
                         </div>
                     </div>
 
-                    <!-- CARD 2: Video (full-bleed) -->
-                    <div id="video-card" class="memory-card-swipe hidden" data-card="video">
-                        <div id="video-thumbnail-container" class="card-content-fullbleed cursor-pointer group">
-                            <img id="video-thumbnail" src="" alt="" class="w-full h-full object-cover" />
-                            <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-all duration-700">
-                                <div class="w-24 h-24 rounded-full bg-white/95 flex items-center justify-center group-hover:scale-105 transition-all duration-700">
-                                    <i data-lucide="play" class="w-12 h-12 text-gold ml-1"></i>
+                    <!-- CARD 2: Message (Video + Message) -->
+                    <div class="memory-card-swipe" data-card="message">
+                        <div id="video-card" class="hidden">
+                            <div id="video-thumbnail-container" class="w-full h-1/2 cursor-pointer group relative overflow-hidden">
+                                <img id="video-thumbnail" src="" alt="" class="w-full h-full object-cover" />
+                                <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-all duration-700">
+                                    <div class="w-20 h-20 rounded-full bg-white/95 flex items-center justify-center group-hover:scale-105 transition-all duration-700">
+                                        <i data-lucide="play" class="w-10 h-10 text-gold ml-1"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- CARD 3: Love Note -->
-                    <div class="memory-card-swipe" data-card="note">
-                        <div class="card-content-center">
-                            <p id="message-body" class="serif-title text-2xl md:text-3xl leading-loose font-light text-center break-words whitespace-pre-wrap max-w-xl"></p>
+                        <div class="flex flex-col h-full overflow-auto">
+                            <p id="message-body" class="serif-title text-xl md:text-2xl leading-relaxed font-light text-center break-words whitespace-pre-wrap px-6 py-8"></p>
                         </div>
                     </div>
 
-                    <!-- CARD 4: Song -->
+                    <!-- CARD 3: Song -->
                     <div id="song-card" class="memory-card-swipe hidden" data-card="song">
                         <div class="card-content-center">
-                            <div id="song-art-container" class="w-56 h-56 mx-auto mb-10 rounded-3xl overflow-hidden shadow-2xl">
+                            <div id="song-art-container" class="w-48 h-48 mx-auto mb-8 rounded-3xl overflow-hidden shadow-2xl">
                                 <img id="song-art" src="" alt="" class="w-full h-full object-cover" />
                             </div>
-                            <h3 id="song-title" class="serif-title text-3xl mb-10 font-normal text-center">—</h3>
+                            <h3 id="song-title" class="serif-title text-2xl mb-6 font-normal text-center">—</h3>
                             <p id="song-artist" class="hidden">—</p>
                             <a id="song-link" class="btn-primary" target="_blank" rel="noopener noreferrer">
                                 <i data-lucide="music" class="w-5 h-5"></i>
@@ -288,18 +288,18 @@
                         </div>
                     </div>
 
-                    <!-- CARD 5: Voice -->
+                    <!-- CARD 4: Voice -->
                     <div id="voice-card" class="memory-card-swipe hidden" data-card="voice">
                         <div class="card-content-center">
-                            <audio id="voice-audio" controls preload="none" class="voice-player mx-auto"></audio>
+                            <audio id="voice-audio" controls preload="none" class="voice-player mx-auto w-48"></audio>
                         </div>
                     </div>
 
-                    <!-- CARD 6: Place -->
+                    <!-- CARD 5: Place -->
                     <div id="location-card" class="memory-card-swipe hidden" data-card="place">
                         <div class="card-content-center">
-                            <h3 id="location-label" class="serif-title text-4xl md:text-5xl mb-10 text-center font-normal"></h3>
-                            <div id="location-map-preview" class="w-full max-w-2xl aspect-video rounded-3xl overflow-hidden mb-10 shadow-2xl mx-auto">
+                            <h3 id="location-label" class="serif-title text-3xl md:text-4xl mb-8 text-center font-normal"></h3>
+                            <div id="location-map-preview" class="w-full max-w-sm aspect-square rounded-3xl overflow-hidden mb-8 shadow-2xl mx-auto">
                                 <img id="location-map-image" src="" alt="" class="w-full h-full object-cover" />
                             </div>
                             <div class="text-center">

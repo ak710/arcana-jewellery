@@ -13,6 +13,51 @@
 
 ---
 
+## Application Screens & Pages
+
+The Arcana Jewellery portal consists of **6 main screens** plus an admin interface:
+
+### 🎯 User-Facing Screens (in device.html)
+1. **Screen 1: Connecting (NFC Handshake)** — `#screen-connect`
+   - Status: Ready for NFC tap
+   - Background: Gradient cream/white
+   - Purpose: First interaction point
+
+2. **Screen 2: Welcome** — `#screen-welcome`
+   - Status: Item found, introduction
+   - Background: Gradient cream/white
+   - Purpose: Brand introduction & context
+
+3. **Screen 3: Details** — `#screen-details`
+   - Status: 3D model viewer
+   - Background: White with backdrop blur
+   - Purpose: Interactive jewellery preview with Three.js model
+
+4. **Screen 4: Not Found** — `#screen-notfound`
+   - Status: Error state (invalid item)
+   - Background: Gradient cream/white
+   - Purpose: Error messaging
+
+5. **Screen 5: Message/Reveal** — `#screen-message` ⭐ **FULLY REFACTORED**
+   - Status: Premium reveal page
+   - Background: White with backdrop blur
+   - Content: Video, Song, Location, Love Note, Share buttons
+   - **See REFACTOR_NOTES.md & DESIGN_SYSTEM.md for full details**
+
+### 📱 Entry Points
+- **index.html** — Scan page (NFC input field)
+  - User enters item name
+  - Navigates to device.html with ?item= parameter
+
+### 🔧 Admin Interface
+- **admin.html** — Item management
+  - Supabase authentication
+  - Create/edit/delete items
+  - **Now uses Playfair Display + Inter fonts** (matches design system)
+  - Full dark mode support
+
+---
+
 ## Document Descriptions
 
 ### 📄 README_REFACTOR.md
@@ -75,6 +120,9 @@
 - Spacing variables
 - Border radius variables
 - Typography hierarchy
+- **Screen styling & page background classes** ✨ NEW
+- **3D model viewer container styling** ✨ NEW
+- **NFC status styling** ✨ NEW
 - Component recipes (ready to copy-paste)
 - State variations (hover, active, focus)
 - Dark mode implementation

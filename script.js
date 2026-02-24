@@ -166,6 +166,7 @@ async function loadAndInitModel() {
                             try {
                                 const elFrom = document.getElementById('message-from');
                                 const elSign = document.getElementById('message-sign');
+                                const msgImage = document.getElementById('message-image');
                                 const elItem = document.getElementById('item-id-label');
                                 const vidIframe = document.getElementById('embedded-iframe');
                                 const msgBody = document.getElementById('message-body');
@@ -185,6 +186,7 @@ async function loadAndInitModel() {
                                 const sender = ITEM_DATA.sender || ITEM_DATA.from || ITEM_DATA.created_by || null;
                                 // Allow an explicit signature field to override the sender display
                                 const signature = ITEM_DATA.signature || ITEM_DATA.sign || null;
+                                const image = ITEM_DATA.image_url || ITEM_DATA.image || ITEM_DATA.photo || null;
                                 const video = ITEM_DATA.video_url || ITEM_DATA.video || ITEM_DATA.videoUrl || null;
                                 const voice = ITEM_DATA.voice_url || ITEM_DATA.voice || ITEM_DATA.voiceNote || null;
                                 const song = ITEM_DATA.song_embed || ITEM_DATA.song_url || ITEM_DATA.song || ITEM_DATA.playlist || null;
@@ -195,21 +197,30 @@ async function loadAndInitModel() {
                                 const message = ITEM_DATA.message || ITEM_DATA.text || ITEM_DATA.msg || null;
                                 const title = ITEM_DATA.title || ITEM_DATA.heading || null;
 
+                                // Populate intro card image
+                                if (msgImage && image) {
+                                    msgImage.src = image;
+                                }
+
+                                if (elFrom) {
+                                    if (sender) elFrom.innerText = `With love: ${sender}`;
+                                }
+
                                 if (elSign) {
                                     if (signature) elSign.innerText = signature;
-                                    else if (sender) elSign.innerText = `From ${sender}`;
                                 }
                                 if (elItem) elItem.innerText = `#${ITEM_ID}`;
 
                                 // REFACTORED: VIDEO MEMORY — Custom thumbnail card (no raw embed)
+                                // MERGED: VIDEO + MESSAGE CARD
                                 if (video) {
-                                    const videoCard = document.getElementById('video-card');
+                                    const videoCardSection = document.getElementById('video-card');
                                     const videoThumbnailContainer = document.getElementById('video-thumbnail-container');
                                     const videoThumbnail = document.getElementById('video-thumbnail');
                                     
-                                    if (videoCard) {
-                                        videoCard.classList.remove('hidden');
-                                        console.log('✓ Video card shown');
+                                    if (videoCardSection) {
+                                        videoCardSection.classList.remove('hidden');
+                                        console.log('✓ Video section shown in message card');
                                         
                                         // Extract YouTube video ID for thumbnail
                                         let videoId = null;
@@ -224,23 +235,23 @@ async function loadAndInitModel() {
                                             }
                                         } catch (e) { /* ignore invalid URLs */ }
                                         
-                                        // Set thumbnail image (YouTube format: https://img.youtube.com/vi/VIDEO_ID/hqdefault.jpg)
+                                        // Set thumbnail image
                                         if (videoId) {
                                             videoThumbnail.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
                                         } else {
                                             videoThumbnail.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22225%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22225%22/%3E%3C/svg%3E';
                                         }
                                         
-                                        // Add click handler to open video in modal/fullscreen
+                                        // Add click handler to open video in modal
                                         if (videoThumbnailContainer) {
                                             videoThumbnailContainer.onclick = () => openVideoModal(youtubeUrl || video);
                                         }
                                     }
                                 } else {
-                                    const videoCard = document.getElementById('video-card');
-                                    if (videoCard) {
-                                        videoCard.classList.add('hidden');
-                                        console.log('✗ Video card hidden (no video data)');
+                                    const videoCardSection = document.getElementById('video-card');
+                                    if (videoCardSection) {
+                                        videoCardSection.classList.add('hidden');
+                                        console.log('✗ Video section hidden (no video data)');
                                     }
                                 }
 
