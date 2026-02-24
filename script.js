@@ -366,7 +366,7 @@ async function loadAndInitModel() {
                                     if (locationUrl) {
                                         try {
                                             const urlObj = new URL(locationUrl);
-                                            isGoogleMapsUrl = /google\.com\/maps/.test(urlObj.hostname + urlObj.pathname);
+                                            isGoogleMapsUrl = /google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com/.test(urlObj.hostname + urlObj.pathname);
                                             if (isGoogleMapsUrl) {
                                                 const q = urlObj.searchParams.get('q');
                                                 if (q) {
@@ -383,7 +383,8 @@ async function loadAndInitModel() {
                                     }
 
                                     // Try geocoding the query to render a static map image when coordinates are not available
-                                    if (!finalLat && !finalLng && queryFromUrl) {
+                                    // BUT: if we have a Google Maps URL (including short links), skip static map and use embedded iframe directly
+                                    if (!finalLat && !finalLng && queryFromUrl && !isGoogleMapsUrl) {
                                         fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryFromUrl)}&format=json&limit=1`)
                                             .then(res => res.json())
                                             .then(data => {
@@ -419,6 +420,10 @@ async function loadAndInitModel() {
                                                     renderIframe(embedUrl);
                                                 }
                                             });
+                                    } else if (isGoogleMapsUrl && locationUrl && !finalLat) {
+                                        // Google Maps URL without coordinates: use embedded iframe immediately
+                                        const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `${locationUrl}${locationUrl.includes('?') ? '&' : '?'}output=embed`;
+                                        renderIframe(embedUrl);
                                     }
 
                                     if (locHref && label) {
@@ -428,7 +433,7 @@ async function loadAndInitModel() {
                                         console.log('✓ Location card shown');
 
                                         // If we already have coordinates, render the static map image immediately
-                                        if (locationMapImage && finalLat && finalLng) {
+                                        if (locationMapImage && finalLat && finalLng && !isGoogleMapsUrl) {
                                             const mapWidth = 800;
                                             const mapHeight = 450;
                                             const zoom = 15;
@@ -445,7 +450,13 @@ async function loadAndInitModel() {
                                                     renderIframe(embedUrl);
                                                 }
                                             };
-                                        } else if (isGoogleMapsUrl && queryFromUrl) {
+                                        } else if (isGoogleMapsUrl && (queryFromUrl || locationUrl)) {
+                                            // Google Maps URL: render embedded iframe directly
+                                            const embedUrl = locationUrl && locationUrl.includes('output=embed')
+                                                ? locationUrl
+                                                : `${locationUrl}${locationUrl && locationUrl.includes('?') ? '&' : '?'}output=embed`;
+                                            renderIframe(embedUrl);
+                                        } else if (!isGoogleMapsUrl && queryFromUrl) {
                                             // If we still lack coords after async geocode kick-off, render iframe quickly for UX
                                             const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
                                             renderIframe(embedUrl);
