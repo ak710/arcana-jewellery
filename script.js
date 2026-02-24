@@ -360,16 +360,29 @@ async function loadAndInitModel() {
                                         previewEl.appendChild(iframe);
                                     };
 
-                                    // If we have a Google Maps URL, extract query and prefer an iframe fallback
+                                    // Extract src URL from iframe code if needed
+                                    let processedLocationUrl = locationUrl;
+                                    if (locationUrl && locationUrl.includes('<iframe')) {
+                                        // Extract src from iframe code: <iframe src="URL"...>
+                                        const srcMatch = locationUrl.match(/src=["']([^"']+)["']/);
+                                        if (srcMatch && srcMatch[1]) {
+                                            processedLocationUrl = srcMatch[1];
+                                            console.log('✓ Extracted embed URL from iframe code');
+                                        }
+                                    }
+
+                                    // If we have a Google Maps URL, extract query and categorize it
                                     let isGoogleMapsUrl = false;
+                                    let isEmbedUrl = false;
                                     let isShortUrl = false;
                                     let queryFromUrl = null;
-                                    if (locationUrl) {
+                                    if (processedLocationUrl) {
                                         try {
-                                            const urlObj = new URL(locationUrl);
-                                            isGoogleMapsUrl = /google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com/.test(urlObj.hostname + urlObj.pathname);
+                                            const urlObj = new URL(processedLocationUrl);
+                                            isEmbedUrl = /maps\/embed/.test(urlObj.href);
                                             isShortUrl = /maps\.app\.goo\.gl/.test(urlObj.hostname);
-                                            if (isGoogleMapsUrl) {
+                                            isGoogleMapsUrl = /google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com/.test(urlObj.hostname + urlObj.pathname);
+                                            if (isGoogleMapsUrl && !isEmbedUrl) {
                                                 const q = urlObj.searchParams.get('q');
                                                 if (q) {
                                                     queryFromUrl = q;
@@ -384,9 +397,10 @@ async function loadAndInitModel() {
                                         }
                                     }
 
-                                    // Try geocoding the query to render a static map image when coordinates are not available
-                                    // For short URLs (maps.app.goo.gl), we'll use static map with geocoding instead of trying to embed
-                                    if (!finalLat && !finalLng && (queryFromUrl || (isShortUrl && label)) && !isGoogleMapsUrl) {
+                                    // If it's an embed URL, render it directly as an iframe
+                                    if (isEmbedUrl && processedLocationUrl) {
+                                        renderIframe(processedLocationUrl);
+                                    } else if (!finalLat && !finalLng && (queryFromUrl || (isShortUrl && label)) && !isGoogleMapsUrl) {
                                         fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryFromUrl || label)}&format=json&limit=1`)
                                             .then(res => res.json())
                                             .then(data => {
@@ -409,22 +423,22 @@ async function loadAndInitModel() {
                                                             renderIframe(embedUrl);
                                                         };
                                                     }
-                                                } else if (isGoogleMapsUrl && !isShortUrl) {
+                                                    } else if (isGoogleMapsUrl && !isShortUrl) {
                                                     // If geocoding yields no results for full URLs, show the Google Maps iframe directly
-                                                    const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
+                                                    const embedUrl = processedLocationUrl.includes('output=embed') ? processedLocationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
                                                     renderIframe(embedUrl);
                                                 }
                                             })
                                             .catch(err => {
                                                 console.warn('Geocoding failed:', err);
                                                 if (isGoogleMapsUrl && !isShortUrl && queryFromUrl) {
-                                                    const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
+                                                    const embedUrl = processedLocationUrl.includes('output=embed') ? processedLocationUrl : `https://www.google.com/maps?q=${encodeURIComponent(queryFromUrl)}&output=embed`;
                                                     renderIframe(embedUrl);
                                                 }
                                             });
-                                    } else if (isGoogleMapsUrl && !isShortUrl && locationUrl && !finalLat) {
+                                    } else if (isGoogleMapsUrl && !isShortUrl && processedLocationUrl && !finalLat) {
                                         // Full Google Maps URLs without coordinates: use embedded iframe
-                                        const embedUrl = locationUrl.includes('output=embed') ? locationUrl : `${locationUrl}${locationUrl.includes('?') ? '&' : '?'}output=embed`;
+                                        const embedUrl = processedLocationUrl.includes('output=embed') ? processedLocationUrl : `${processedLocationUrl}${processedLocationUrl.includes('?') ? '&' : '?'}output=embed`;
                                         renderIframe(embedUrl);
                                     } else if (isShortUrl && !finalLat && label) {
                                         // Short URLs: geocode the label to show a static map preview instead of trying to iframe
