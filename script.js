@@ -153,12 +153,20 @@ async function loadAndInitModel() {
                             const device3dIframe = document.getElementById('device-3d-iframe');
                             if (ITEM_DATA.iframe_url && device3dIframe) {
                                 device3dIframe.src = ITEM_DATA.iframe_url;
+                                console.debug('Set device 3D iframe src from iframe_url:', ITEM_DATA.iframe_url);
                             } else if (CUSTOM_MODEL_URL) {
                                 // Fallback mapping: try to fetch iframe mapping for the model_url
                                 try {
                                     const iframeUrl = await fetchIframeUrl(CUSTOM_MODEL_URL);
-                                    if (iframeUrl && device3dIframe) device3dIframe.src = iframeUrl;
+                                    if (iframeUrl && device3dIframe) {
+                                        device3dIframe.src = iframeUrl;
+                                        console.debug('Set device 3D iframe src from model mapping:', iframeUrl);
+                                    } else {
+                                        console.debug('No iframe URL found for model:', CUSTOM_MODEL_URL);
+                                    }
                                 } catch (e) { console.warn('fetchIframeUrl failed', e); }
+                            } else {
+                                console.debug('No iframe_url or model_url found for device 3D display');
                             }
                         } catch (e) { console.warn('setting device iframe failed', e); }
 
@@ -166,7 +174,6 @@ async function loadAndInitModel() {
                             try {
                                 const elFrom = document.getElementById('message-from');
                                 const elSign = document.getElementById('message-sign');
-                                const msgImage = document.getElementById('message-image');
                                 const elItem = document.getElementById('item-id-label');
                                 const vidIframe = document.getElementById('embedded-iframe');
                                 const msgBody = document.getElementById('message-body');
@@ -186,7 +193,6 @@ async function loadAndInitModel() {
                                 const sender = ITEM_DATA.sender || ITEM_DATA.from || ITEM_DATA.created_by || null;
                                 // Allow an explicit signature field to override the sender display
                                 const signature = ITEM_DATA.signature || ITEM_DATA.sign || null;
-                                const image = ITEM_DATA.image_url || ITEM_DATA.image || ITEM_DATA.photo || null;
                                 const video = ITEM_DATA.video_url || ITEM_DATA.video || ITEM_DATA.videoUrl || null;
                                 const voice = ITEM_DATA.voice_url || ITEM_DATA.voice || ITEM_DATA.voiceNote || null;
                                 const song = ITEM_DATA.song_embed || ITEM_DATA.song_url || ITEM_DATA.song || ITEM_DATA.playlist || null;
@@ -197,11 +203,7 @@ async function loadAndInitModel() {
                                 const message = ITEM_DATA.message || ITEM_DATA.text || ITEM_DATA.msg || null;
                                 const title = ITEM_DATA.title || ITEM_DATA.heading || null;
 
-                                // Populate intro card image
-                                if (msgImage && image) {
-                                    msgImage.src = image;
-                                }
-
+                                // Populate title and signature
                                 if (elFrom) {
                                     if (sender) elFrom.innerText = `With love: ${sender}`;
                                 }

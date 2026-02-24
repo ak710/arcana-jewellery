@@ -16,35 +16,9 @@
     --spacing-card: 28px;
 }
 
-/* Dark mode variables */
-:root.dark {
-    --bg-white: #0F0F0F;
-    --bg-cream: #1A1A1A;
-    --text-dark: #F0F0F0;
-    --text-medium: #B8B8B8;
-    --text-light: #909090;
-}
-
 /* Light mode backgrounds */
 html, body {
     background: linear-gradient(to bottom, #FFFFFF, #FAF9F6);
-}
-
-/* Dark mode backgrounds - EXPLICIT CSS to ensure it overrides inline styles */
-html.dark, html.dark body, body.dark {
-    background: linear-gradient(to bottom, #0F0F0F, #1A1A1A) !important;
-    color: #F0F0F0 !important;
-}
-
-/* Force dark mode styling on html/body */
-html.dark body {
-    color: #F0F0F0 !important;
-    background: linear-gradient(to bottom, #0F0F0F, #1A1A1A) !important;
-}
-
-body.dark {
-    background: linear-gradient(to bottom, #0F0F0F, #1A1A1A) !important;
-    color: #F0F0F0 !important;
 }
 
 /* Smooth transition for theme switching */
@@ -84,18 +58,13 @@ h1, h2, h3, .serif, .serif-title {
     transition: color 0.3s ease;
 }
 
-/* Glassmorphism - Works in both light and dark modes */
+/* Glassmorphism - Works in light mode */
 .glass-panel {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(201, 169, 97, 0.15);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(201, 169, 97, 0.1);
-}
-
-.dark .glass-panel {
-    background: rgba(15, 15, 15, 0.85);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 2px 8px 0 rgba(201, 169, 97, 0.15);
 }
 
 /* Button Styles */
@@ -269,45 +238,7 @@ h1, h2, h3, .serif, .serif-title {
     background: linear-gradient(180deg, var(--bg-white) 0%, var(--bg-cream) 100%);
 }
 
-.dark #canvas-container {
-    background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
-}
-
-/* Dark mode overrides for Tailwind utility classes */
-.dark .bg-white,
-.dark .bg-white\/95 {
-    background-color: #1A1A1A !important;
-}
-
-.dark .bg-gray-50 {
-    background-color: #0F0F0F !important;
-}
-
-.dark .bg-gray-100 {
-    background-color: #1A1A1A !important;
-}
-
-.dark .bg-gradient-to-b {
-    background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
-}
-
-.dark .text-gray-600,
-.dark .text-gray-500 {
-    color: #B8B8B8 !important;
-}
-
-.dark .border-gray-200 {
-    border-color: #333 !important;
-}
-
-/* Override the min-h-screen gradient backgrounds */
-html.dark body,
-.dark .min-h-screen {
-    background-color: #0F0F0F !important;
-    background-image: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
-}
-
-/* Form inputs in both modes */
+/* Form inputs - light mode only */
 input[type="text"],
 input[type="email"],
 input[type="url"],
@@ -319,46 +250,6 @@ select {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-.dark input[type="text"],
-.dark input[type="email"],
-.dark input[type="url"],
-.dark textarea,
-.dark select {
-    background-color: #1A1A1A !important;
-    color: #F0F0F0 !important;
-    border-color: #444 !important;
-}
-
-.dark input[type="email"]::placeholder,
-.dark input[type="url"]::placeholder,
-.dark textarea::placeholder {
-    color: #909090 !important;
-}
-
-/* White backgrounds in dark mode */
-.dark .bg-white {
-    background-color: #1A1A1A !important;
-}
-
-.dark .bg-white\/95,
-.dark .bg-white\\/95 {
-    background-color: rgba(26, 26, 26, 0.95) !important;
-}
-
-/* Border colors in dark mode */
-.dark .border {
-    border-color: #444 !important;
-}
-
-.dark button.bg-gray-100 {
-    background-color: #2A2A2A !important;
-    color: #F0F0F0 !important;
-}
-
-.dark button.bg-gray-100:hover {
-    background-color: #3A3A3A !important;
-}
-
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="url"]:focus,
@@ -367,152 +258,6 @@ select:focus {
     outline: none;
     border-color: var(--gold);
     box-shadow: 0 0 0 2px rgba(201, 169, 97, 0.1);
-}
-
-.dark input[type="text"],
-.dark input[type="email"],
-.dark input[type="url"],
-.dark textarea,
-.dark select {
-    background-color: #2A2A2A;
-    color: var(--text-dark);
-    border-color: #444;
-}
-
-.dark input[type="text"]:focus,
-.dark input[type="email"]:focus,
-.dark input[type="url"]:focus,
-.dark textarea:focus,
-.dark select:focus {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 2px rgba(201, 169, 97, 0.1);
-}
-
-/* Form labels and headings in dark mode */
-.dark label {
-    color: #F0F0F0 !important;
-}
-
-.dark h1,
-.dark h2,
-.dark h3,
-.dark h4,
-.dark h5,
-.dark h6 {
-    color: #F0F0F0 !important;
-}
-
-.dark .font-medium {
-    color: inherit;
-}
-
-.dark p {
-    color: #B8B8B8;
-}
-
-/* Theme toggle button styling */
-.theme-toggle {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 100;
-    background: rgba(201, 169, 97, 0.1);
-    border: 2px solid var(--gold);
-    color: var(--gold);
-    width: 3rem;
-    height: 3rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1.2rem;
-}
-
-.theme-toggle:hover {
-    background: var(--gold);
-    color: var(--bg-white);
-    transform: scale(1.1) rotate(20deg);
-}
-
-/* DARK MODE AGGRESSIVE OVERRIDES */
-html.dark body {
-    background-image: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
-    background-color: #0F0F0F !important;
-}
-
-/* Override Tailwind's from-white and to-cream gradients */
-.dark .from-white {
-    --tw-gradient-from: #0F0F0F !important;
-}
-
-.dark .to-cream {
-    --tw-gradient-to: #1A1A1A !important;
-}
-
-/* Override bg-gradient-to-b in dark mode */
-.dark .min-h-screen {
-    background: linear-gradient(180deg, #0F0F0F 0%, #1A1A1A 100%) !important;
-}
-
-/* Tailwind gray color class overrides for dark mode */
-.dark .text-gray-500 {
-    color: #B8B8B8 !important;
-}
-
-.dark .text-gray-600 {
-    color: #A0A0A0 !important;
-}
-
-.dark .text-gray-700 {
-    color: #909090 !important;
-}
-
-.dark .text-gray-800 {
-    color: #808080 !important;
-}
-
-.dark .bg-gray-50 {
-    background-color: #1A1A1A !important;
-}
-
-.dark .bg-gray-100 {
-    background-color: #2A2A2A !important;
-}
-
-.dark .bg-gray-200 {
-    background-color: #3A3A3A !important;
-}
-
-.dark .border-gray-200 {
-    border-color: #3A3A3A !important;
-}
-
-.dark .border-gray-300 {
-    border-color: #4A4A4A !important;
-}
-
-.dark .shadow {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5) !important;
-}
-
-/* Green button in dark mode */
-.dark .bg-green-600 {
-    background-color: #059669 !important;
-}
-
-.dark .bg-green-600:hover {
-    background-color: #047857 !important;
-}
-
-/* Blue button in dark mode */
-.dark .bg-blue-600 {
-    background-color: #2563eb !important;
-}
-
-.dark .bg-blue-600:hover {
-    background-color: #1d4ed8 !important;
 }
 
 /* Vault experience layout */
@@ -537,10 +282,6 @@ html.dark body {
     position: relative;
     padding: 1.25rem;
     background: rgba(255, 255, 255, 0.9);
-}
-
-.dark .vault-card {
-    background: rgba(15, 15, 15, 0.9);
 }
 
 .card-header {
@@ -627,10 +368,6 @@ html.dark body {
     background: linear-gradient(165deg, rgba(201, 169, 97, 0.08), rgba(255, 255, 255, 0.9));
 }
 
-.dark #location-card {
-    background: linear-gradient(165deg, rgba(201, 169, 97, 0.12), rgba(15, 15, 15, 0.85));
-}
-
 .message-body {
     background: rgba(201, 169, 97, 0.04);
     border-radius: 0.75rem;
@@ -647,10 +384,6 @@ html.dark body {
    ============================================================ */
 #video-thumbnail-container {
     background-color: var(--bg-cream);
-}
-
-.dark #video-thumbnail-container {
-    background-color: #2A2A2A;
 }
 
 /* ============================================================
@@ -683,10 +416,6 @@ html.dark body {
 
 #location-map-image {
     background-color: var(--bg-cream);
-}
-
-.dark #location-map-image {
-    background-color: #2A2A2A;
 }
 
 /* ============================================================
@@ -825,15 +554,6 @@ html.dark body {
     background: rgba(201, 169, 97, 0.05);
     border-color: var(--gold);
     transform: none;
-}
-
-.dark .btn-primary-outline {
-    color: var(--text-light);
-    border-color: rgba(201, 169, 97, 0.4);
-}
-
-.dark .btn-primary-outline:hover {
-    background: rgba(201, 169, 97, 0.1);
 }
 
 /* BACK ARROW — VISUALLY DE-EMPHASIZED */
@@ -1026,3 +746,34 @@ html.dark body {
 .memory-card-swipe.active.show-hint {
     animation: swipeHint 2s ease-in-out 1s 2;
 }
+
+/* iframe and 3D model display styles */
+iframe {
+    display: block;
+    background: white;
+    border: none;
+}
+
+/* Aspect ratio container for video/iframe embeds */
+.aspect-video {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(to bottom, white, #FAF9F6);
+    overflow: hidden;
+}
+
+.aspect-video iframe {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: white;
+}
+
+#device-3d-iframe {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: white;
+}
+
