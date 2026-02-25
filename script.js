@@ -272,6 +272,8 @@ async function loadAndInitModel() {
                                     }
                                 }
 
+                                requestAnimationFrame(fitCardText);
+
                                 // REFACTORED: SONG MEMORY — Custom card with album art + metadata (no embed player)
                                 if (songCard) {
                                     if (song) {
@@ -834,7 +836,14 @@ window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    requestAnimationFrame(fitCardText);
 });
+
+if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => {
+        requestAnimationFrame(fitCardText);
+    });
+}
 
 
 
@@ -1102,6 +1111,93 @@ function openVideoModal(videoUrl) {
 
 // Card stack will be initialized after data loads - see songCard population
 
+function fitCardText() {
+    // Fit message title to card width
+    const messageTitle = document.getElementById('message-title');
+    if (messageTitle && messageTitle.textContent && messageTitle.textContent.trim()) {
+        const titleCard = messageTitle.closest('.memory-card-swipe');
+        if (titleCard) {
+            messageTitle.style.fontSize = '';
+            const computed = window.getComputedStyle(messageTitle);
+            const baseSize = parseFloat(computed.fontSize);
+            const minSize = 20;
+
+            if (Number.isFinite(baseSize) && baseSize > minSize) {
+                const applySize = (size) => {
+                    messageTitle.style.fontSize = `${size}px`;
+                };
+
+                const overflows = () => messageTitle.scrollWidth > titleCard.clientWidth - 64;
+
+                applySize(baseSize);
+                if (!overflows()) {
+                    return;
+                }
+
+                let low = minSize;
+                let high = baseSize;
+
+                while (high - low > 0.25) {
+                    const mid = (low + high) / 2;
+                    applySize(mid);
+                    if (overflows()) {
+                        high = mid;
+                    } else {
+                        low = mid;
+                    }
+                }
+
+                applySize(Math.max(minSize, low));
+            }
+        }
+    }
+
+    // Fit message body to container height
+    const messageBody = document.getElementById('message-body');
+    const messageContainer = document.getElementById('message-text-container');
+
+    if (!messageBody || !messageContainer) return;
+    if (!messageBody.textContent || !messageBody.textContent.trim()) return;
+
+    messageBody.style.fontSize = '';
+    messageBody.style.lineHeight = '';
+
+    const computed = window.getComputedStyle(messageBody);
+    const baseSize = parseFloat(computed.fontSize);
+    const computedLineHeight = parseFloat(computed.lineHeight);
+    const lineHeightRatio = Number.isFinite(computedLineHeight) && baseSize > 0
+        ? computedLineHeight / baseSize
+        : 1.6;
+    const minSize = 12;
+
+    if (!Number.isFinite(baseSize) || baseSize <= minSize) return;
+
+    const applySize = (size) => {
+        messageBody.style.fontSize = `${size}px`;
+        messageBody.style.lineHeight = `${size * lineHeightRatio}px`;
+    };
+
+    const overflows = () => messageBody.scrollHeight > messageContainer.clientHeight + 1;
+
+    applySize(baseSize);
+    if (!overflows()) return;
+
+    let low = minSize;
+    let high = baseSize;
+
+    while (high - low > 0.25) {
+        const mid = (low + high) / 2;
+        applySize(mid);
+        if (overflows()) {
+            high = mid;
+        } else {
+            low = mid;
+        }
+    }
+
+    applySize(Math.max(minSize, low));
+}
+
 
 function initCardStack() {
     if (isInitialized) return;
@@ -1164,6 +1260,8 @@ function initCardStack() {
     setTimeout(() => {
         if (cards[0]) cards[0].classList.add('show-hint');
     }, 1500);
+
+    requestAnimationFrame(fitCardText);
 }
 
 function updateCardStates() {
